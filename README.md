@@ -98,6 +98,6 @@ O banco de palavras por enquanto utiliza palavras de cinco letras sem acentos ne
 
 O arquivo `ranking.txt` armazena os resultados das partidas, permitindo que sejam recuperados em execuções posteriores.
 
-## Autores
+# Autores
 
-Projeto desenvolvido por Felipe Assis, Gabriel Cassemiro e José Arthur para a disciplina de Programação Imperativa e Funcional.
+Projeto desenvolvido por **Felipe Assis (fafs@cesar.school), Gabriel Cassemiro (gcrfl@cesar.school) e José Artur Viana (jafv@cesar.school)** para a disciplina de Programação Imperativa e Funcional.
