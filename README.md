@@ -1,6 +1,6 @@
 # Termo
 
-Projeto final da disciplina de Programação Imperativa e Funcional, desenvolvido em linguagem C com a biblioteca Raylib.
+Projeto final da disciplina de Programação Imperativa e Funcional, desenvolvido em linguagem C utilizando a biblioteca Raylib.
 
 ## Sobre o jogo
 
@@ -18,44 +18,70 @@ O jogador vence quando acerta a palavra secreta. Caso não consiga acertar em se
 
 - **C:** desenvolvimento da lógica e das estruturas do jogo.
 - **Raylib:** criação da interface gráfica e leitura das teclas.
+- **libcurl:** realização de requisições HTTP para obtenção de palavras aleatórias.
+- **Random Word API:** fornecimento de palavras em português brasileiro.
 - **GCC:** compilação do código.
-- **Makefile:** automatização da compilação.
+- **GNU Make:** automatização da compilação.
+- **pkg-config:** identificação das bibliotecas e suas dependências.
 
 ## Funcionalidades
 
-- Sorteio de uma palavra secreta a partir de um arquivo.
+- Obtenção de uma palavra secreta aleatória por meio de uma API externa.
+- Seleção de palavras em português brasileiro com exatamente cinco letras.
+- Conversão de caracteres acentuados para letras sem acento.
 - Entrada de palavras pelo teclado.
 - Avaliação das letras de cada tentativa.
 - Exibição das tentativas em uma grade.
 - Indicação visual das letras por cores.
-- Reinício da partida após o término.
+- Reinício da partida após o término, com uma nova consulta à API.
 - Registro dos resultados em arquivo.
+
+## Integração com a API
+
+O projeto utiliza a [Random Word API](https://random-word-api.herokuapp.com/home) para obter palavras aleatórias em português brasileiro.
+
+A requisição utiliza os seguintes parâmetros:
+
+- `number=1`: solicita uma palavra.
+- `length=5`: solicita palavras com cinco letras.
+- `lang=pt-br`: define o idioma como português brasileiro.
+
+Endpoint utilizado:
+
+```text
+https://random-word-api.herokuapp.com/word?number=1&length=5&lang=pt-br
+```
+
+A comunicação com a API é realizada por meio da biblioteca libcurl, responsável pelas requisições HTTP e pelo recebimento das respostas.
+
+As palavras recebidas passam por um processo de conversão para letras maiúsculas e remoção de acentos, mantendo a compatibilidade com a lógica de comparação do jogo.
+
+A consulta acontece no início de cada partida e sempre que uma nova partida é iniciada.
 
 ## Organização dos arquivos
 
 | Arquivo | Descrição |
 |---|---|
-| `main.c` | Inicialização da janela, leitura do teclado e desenho da interface. |
+| `main.c` | Inicialização da janela, leitura do teclado, controle da partida e desenho da interface. |
 | `jogo.h` | Definição da estrutura da partida e declaração das funções. |
 | `jogo.c` | Regras do jogo e verificação das tentativas. |
-| `palavras.h` | Definição da estrutura do banco de palavras. |
-| `palavras.c` | Leitura das palavras, alocação dinâmica e sorteio da palavra secreta. |
-| `ranking.h` | Definição da estrutura dos resultados. |
+| `palavras.h` | Declaração das funções de integração com a API. |
+| `palavras.c` | Comunicação com a API, recebimento da resposta, conversão e preparação da palavra secreta. |
+| `ranking.h` | Definição das estruturas dos resultados. |
 | `ranking.c` | Gerenciamento da lista encadeada e gravação dos resultados. |
-| `palavras.txt` | Lista de palavras utilizadas nas partidas. |
 | `ranking.txt` | Arquivo que armazena os resultados das partidas. |
-| `Makefile` | Comandos para compilar o projeto. |
+| `Makefile` | Comandos para compilar, executar e limpar o projeto. |
 
 ## Conceitos de programação utilizados
 
-O projeto utiliza os seguintes conceitos exigidos pela disciplina:
+O projeto utiliza os seguintes requisitos exigidos pela disciplina:
 
-- **Structs:** organização dos dados de uma partida e dos resultados.
-- **Ponteiros:** acesso e alteração das estruturas, além do gerenciamento da lista encadeada.
-- **Alocação dinâmica de memória:** armazenamento do banco de palavras e criação dos nós do ranking.
+- **Structs:** organização dos dados de uma partida, dos resultados e da resposta HTTP.
+- **Ponteiros:** acesso e alteração das estruturas, além do gerenciamento da lista encadeada e do buffer de resposta.
+- **Alocação dinâmica de memória:** utilização de `malloc()` para criação dos nós do ranking e `realloc()` para armazenamento da resposta recebida pela API.
 - **Listas encadeadas:** organização dos resultados das partidas.
 - **Matrizes:** armazenamento das tentativas e das cores correspondentes a cada letra.
-- **Leitura e escrita em arquivos:** carregamento do banco de palavras e persistência dos resultados.
+- **Leitura e escrita em arquivos:** persistência dos resultados das partidas no arquivo `ranking.txt`.
 
 ## Requisitos para executar
 
@@ -63,27 +89,64 @@ Para compilar e executar o jogo, é necessário ter:
 
 - GCC compatível com C11.
 - Biblioteca Raylib instalada.
+- Biblioteca libcurl instalada.
 - GNU Make.
-- MSYS2 UCRT64 configurado no Windows, ou outro ambiente compatível com a instalação da Raylib.
+- pkg-config.
+- Conexão com a internet para consultar a API.
+
+No Windows, recomenda-se utilizar o MSYS2 UCRT64 para disponibilizar as dependências de compilação.
+
+### Instalação do libcurl no MSYS2
+
+Caso ainda não tenha a biblioteca instalada, execute no terminal MSYS2 UCRT64:
+
+```bash
+pacman -S mingw-w64-ucrt-x86_64-curl
+```
 
 ## Como executar no Windows
 
-1. Instale o MSYS2 e configure o ambiente UCRT64.
-2. Instale o GCC, o Make, a Raylib e o `pkg-config`.
-3. Abra o terminal MSYS2 UCRT64.
-4. Acesse a pasta do projeto
+O projeto pode ser compilado pelo terminal PowerShell do VS Code utilizando as ferramentas instaladas pelo MSYS2.
+
+1. Abra a pasta do projeto no VS Code.
+2. Abra o terminal PowerShell.
+3. Configure temporariamente as variáveis de ambiente do MSYS2:
+
+```powershell
+$env:MSYSTEM = "UCRT64"
+$env:CHERE_INVOKING = "1"
+$env:PATH = "C:\msys64\ucrt64\bin;C:\msys64\usr\bin;$env:PATH"
+```
+
+4. Confira se as bibliotecas estão disponíveis:
+
+```powershell
+pkg-config --modversion raylib libcurl
+```
 
 5. Compile o projeto:
 
-   ```bash
-   make
-   ```
+```powershell
+make
+```
 
 6. Execute o jogo:
 
-   ```bash
-   ./termo.exe
-   ```
+```powershell
+./termo.exe
+```
+
+Também é possível compilar e executar diretamente com:
+
+```powershell
+make run
+```
+
+Para remover o executável gerado:
+
+```powershell
+make clean
+```
 
 ## Controles
 
@@ -94,10 +157,10 @@ Para compilar e executar o jogo, é necessário ter:
 
 ## Observações
 
-O banco de palavras por enquanto utiliza palavras de cinco letras sem acentos nesta versão inicial. O arquivo `palavras.txt` pode ser editado para adicionar novas palavras, mantendo o formato de uma palavra por linha.
+O projeto utiliza uma API externa para obter as palavras secretas, não dependendo de um arquivo local para manter uma lista de palavras.
 
-O arquivo `ranking.txt` armazena os resultados das partidas, permitindo que sejam recuperados em execuções posteriores.
+É necessária uma conexão com a internet para iniciar uma partida e obter novas palavras. Caso a API esteja indisponível, não será possível iniciar uma nova partida até que a comunicação seja restabelecida.
 
-# Autores
+## Autores
 
-Projeto desenvolvido por **Felipe Assis (fafs@cesar.school), Gabriel Cassemiro (gcrfl@cesar.school) e José Artur Viana (jafv@cesar.school)** para a disciplina de Programação Imperativa e Funcional.
+Projeto desenvolvido por Felipe Assis (fafs@cesar.school), Gabriel Cassemiro (gcrfl@cesar.school) e José Artur Viana (jafv@cesar.school) para a disciplina de Programação Imperativa e Funcional.
