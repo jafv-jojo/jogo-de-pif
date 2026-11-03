@@ -1,10 +1,7 @@
-
 #include "raylib.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <time.h>
 
 #include "jogo.h"
 #include "palavras.h"
@@ -56,12 +53,17 @@ void desenharJogo(Jogo *jogo, char entrada[]) {
 }
 
 int main(void) {
-    srand((unsigned int)time(NULL));
 
-    BancoPalavras banco = {NULL, 0, 0};
+    if (!inicializarAPI()) {
+        printf("Erro ao inicializar a API.\n");
+        return 1;
+    }
 
-    if (!carregarPalavras(&banco, "palavras.txt")) {
-        printf("Erro ao carregar palavras.txt\n");
+    char palavra[TAMANHO + 1];
+
+    if (!escolherPalavra(palavra)) {
+        printf("Erro ao obter palavra da API.\n");
+        finalizarAPI();
         return 1;
     }
 
@@ -71,8 +73,6 @@ int main(void) {
     Jogo jogo;
     char entrada[TAMANHO + 1] = "";
 
-    char palavra[TAMANHO + 1];
-    escolherPalavra(&banco, palavra);
     iniciarJogo(&jogo, palavra);
 
     int registroSalvo = 0;
@@ -81,17 +81,22 @@ int main(void) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+
         if (!jogo.terminou) {
+
             int tecla = GetCharPressed();
 
             while (tecla > 0) {
+
                 if (tecla >= 'a' && tecla <= 'z') {
                     tecla = toupper(tecla);
                 }
 
                 if (tecla >= 'A' && tecla <= 'Z' &&
                     strlen(entrada) < TAMANHO) {
+
                     int tamanho = (int)strlen(entrada);
+
                     entrada[tamanho] = (char)tecla;
                     entrada[tamanho + 1] = '\0';
                 }
@@ -100,6 +105,7 @@ int main(void) {
             }
 
             if (IsKeyPressed(KEY_BACKSPACE)) {
+
                 int tamanho = (int)strlen(entrada);
 
                 if (tamanho > 0) {
@@ -109,10 +115,14 @@ int main(void) {
 
             if (IsKeyPressed(KEY_ENTER) &&
                 strlen(entrada) == TAMANHO) {
+
                 enviarTentativa(&jogo, entrada);
+
                 entrada[0] = '\0';
             }
+
         } else if (!registroSalvo) {
+
             adicionarResultado(&ranking, "Jogador",
                                jogo.quantidadeTentativas, jogo.venceu);
 
@@ -123,21 +133,32 @@ int main(void) {
         }
 
         if (jogo.terminou && IsKeyPressed(KEY_R)) {
-            escolherPalavra(&banco, palavra);
-            iniciarJogo(&jogo, palavra);
-            entrada[0] = '\0';
-            registroSalvo = 0;
+
+            if (escolherPalavra(palavra)) {
+
+                iniciarJogo(&jogo, palavra);
+
+                entrada[0] = '\0';
+                registroSalvo = 0;
+
+            } else {
+                printf("Erro ao obter nova palavra. Tente novamente.\n");
+            }
         }
 
         BeginDrawing();
+
         ClearBackground(RAYWHITE);
 
         DrawText("TERMO", 220, 40, 40, DARKGRAY);
+
         desenharJogo(&jogo, entrada);
 
         if (jogo.terminou) {
+
             if (jogo.venceu) {
                 DrawText("Voce acertou!", 200, 610, 25, GREEN);
+
             } else {
                 DrawText(TextFormat("Palavra: %s", jogo.palavra),
                          200, 610, 25, RED);
@@ -145,7 +166,9 @@ int main(void) {
 
             DrawText("Pressione R para jogar novamente",
                      105, 650, 20, DARKGRAY);
+
         } else {
+
             DrawText("Digite 5 letras e pressione ENTER",
                      95, 610, 20, DARKGRAY);
         }
@@ -155,7 +178,8 @@ int main(void) {
 
     CloseWindow();
 
-    liberarPalavras(&banco);
+    finalizarAPI();
+
     liberarRanking(ranking);
 
     return 0;

@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11
-LIBS = $(shell pkg-config --cflags --libs raylib)
+LIBS = $(shell pkg-config --cflags --libs raylib libcurl)
 
 ARQUIVOS = main.c jogo.c palavras.c ranking.c
 
