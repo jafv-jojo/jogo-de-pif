@@ -10,6 +10,29 @@
 #define LARGURA 600
 #define ALTURA 700
 
+
+#define TELA_MENU 0
+#define TELA_TERMO 1
+
+
+void desenharMenu(void) {
+    DrawText("JOGO DE PIF", 155, 90, 40, DARKGRAY);
+    DrawText("Escolha o modo de jogo", 155, 155, 22, GRAY);
+
+    DrawRectangle(150, 240, 300, 75, DARKGREEN);
+    DrawText("TERMO", 245, 255, 30, WHITE);
+
+    DrawRectangle(150, 340, 300, 75, GRAY);
+    DrawText("DUETO", 245, 355, 30, WHITE);
+
+    DrawRectangle(150, 440, 300, 75, GRAY);
+    DrawText("QUARTETO", 210, 455, 30, WHITE);
+
+    DrawText("Dueto e Quarteto em desenvolvimento",
+             115, 560, 18, DARKGRAY);
+}
+
+
 void desenharJogo(Jogo *jogo, char entrada[]) {
     int inicioX = 150;
     int inicioY = 150;
@@ -53,6 +76,7 @@ void desenharJogo(Jogo *jogo, char entrada[]) {
 }
 
 int main(void) {
+    int telaAtual = TELA_MENU;
 
     if (!inicializarAPI()) {
         printf("Erro ao inicializar a API.\n");
@@ -80,9 +104,30 @@ int main(void) {
     InitWindow(LARGURA, ALTURA, "Termo");
     SetTargetFPS(60);
 
-    while (!WindowShouldClose()) {
+while (!WindowShouldClose()) {
+    if (telaAtual == TELA_MENU) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            Vector2 mouse = GetMousePosition();
 
-        if (!jogo.terminou) {
+            if (CheckCollisionPointRec(
+                mouse, (Rectangle){150, 240, 300, 75})) {
+            telaAtual = TELA_TERMO;
+        }
+    }
+
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+    desenharMenu();
+    EndDrawing();
+
+    continue;
+}
+if (IsKeyPressed(KEY_ESCAPE)) {
+    telaAtual = TELA_MENU;
+    continue;
+}
+
+if (!jogo.terminou) {
 
             int tecla = GetCharPressed();
 
