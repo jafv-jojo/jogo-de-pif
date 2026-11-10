@@ -6,6 +6,7 @@
 #include "jogo.h"
 #include "palavras.h"
 #include "ranking.h"
+#include "dueto.h"
 
 #define LARGURA 600
 #define ALTURA 700
@@ -13,6 +14,7 @@
 
 #define TELA_MENU 0
 #define TELA_TERMO 1
+#define TELA_DUETO 2
 
 
 void desenharMenu(void) {
@@ -31,6 +33,61 @@ void desenharMenu(void) {
     DrawText("Dueto e Quarteto em desenvolvimento",
              115, 560, 18, DARKGRAY);
 }
+
+void desenharDueto(Dueto *dueto, char entrada[]) {
+    int tamanhoCelula = 43;
+    int espaco = 5;
+    int inicioY = 145;
+
+    for (int tab = 0; tab < DUETO_QUANTIDADE_PALAVRAS; tab++) {
+        int inicioX = 45 + tab * 270;
+
+        DrawText(TextFormat("PALAVRA %d", tab + 1),
+                 inicioX + 55, 100, 20, DARKGRAY);
+
+        for (int i = 0; i < DUETO_MAX_TENTATIVAS; i++) {
+            for (int j = 0; j < DUETO_TAMANHO; j++) {
+                int x = inicioX + j * (tamanhoCelula + espaco);
+                int y = inicioY + i * (tamanhoCelula + espaco);
+                Color cor = LIGHTGRAY;
+
+                if (i < dueto->quantidadeTentativas) {
+                    if (dueto->cores[tab][i][j] == 2) {
+                        cor = GREEN;
+                    } else if (dueto->cores[tab][i][j] == 1) {
+                        cor = GOLD;
+                    } else {
+                        cor = GRAY;
+                    }
+                }
+
+                DrawRectangle(x, y, tamanhoCelula, tamanhoCelula, cor);
+                DrawRectangleLines(x, y, tamanhoCelula,
+                                   tamanhoCelula, DARKGRAY);
+
+                char letra[2] = {'\0', '\0'};
+
+                if (i < dueto->quantidadeTentativas) {
+                    letra[0] = dueto->tentativas[i][j];
+                } else if (i == dueto->quantidadeTentativas &&
+                           strlen(entrada) > (size_t)j &&
+                           !dueto->acertou[tab]) {
+                    letra[0] = entrada[j];
+                }
+
+                if (letra[0] != '\0') {
+                    DrawText(letra, x + 12, y + 8, 27, WHITE);
+                }
+            }
+        }
+
+        if (dueto->acertou[tab]) {
+            DrawText("ACERTOU!", inicioX + 65, 510, 20, GREEN);
+        }
+    }
+}
+
+
 
 
 void desenharJogo(Jogo *jogo, char entrada[]) {
@@ -98,7 +155,36 @@ int main(void) {
     char entrada[TAMANHO + 1] = "";
 
     iniciarJogo(&jogo, palavra);
+    Dueto dueto;
+    char palavraDueto1[DUETO_TAMANHO + 1];
+    char palavraDueto2[DUETO_TAMANHO + 1];
 
+
+if (!escolherPalavra(palavraDueto1)) {
+    printf("Erro ao obter a primeira palavra do Dueto.\n");
+    finalizarAPI();
+    liberarRanking(ranking);
+    return 1;
+}
+
+int palavraDiferente = 0;
+
+for (int tentativa = 0; tentativa < 10; tentativa++) {
+    if (escolherPalavra(palavraDueto2) &&
+        strcmp(palavraDueto1, palavraDueto2) != 0) {
+        palavraDiferente = 1;
+        break;
+    }
+}
+
+if (!palavraDiferente) {
+    printf("Erro ao obter duas palavras diferentes.\n");
+    finalizarAPI();
+    liberarRanking(ranking);
+    return 1;
+}
+
+iniciarDueto(&dueto, palavraDueto1, palavraDueto2);
     int registroSalvo = 0;
 
     InitWindow(LARGURA, ALTURA, "Termo");
