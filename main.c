@@ -1,3 +1,4 @@
+
 #include "raylib.h"
 #include <stdio.h>
 #include <string.h>
@@ -11,11 +12,9 @@
 #define LARGURA 600
 #define ALTURA 700
 
-
 #define TELA_MENU 0
 #define TELA_TERMO 1
 #define TELA_DUETO 2
-
 
 void desenharMenu(void) {
     DrawText("JOGO DE PIF", 155, 90, 40, DARKGRAY);
@@ -30,8 +29,8 @@ void desenharMenu(void) {
     DrawRectangle(150, 440, 300, 75, GRAY);
     DrawText("QUARTETO", 210, 455, 30, WHITE);
 
-    DrawText("Dueto e Quarteto em desenvolvimento",
-             115, 560, 18, DARKGRAY);
+    DrawText("Quarteto em desenvolvimento",
+             145, 560, 18, DARKGRAY);
 }
 
 void desenharDueto(Dueto *dueto, char entrada[]) {
@@ -51,7 +50,9 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
                 int y = inicioY + i * (tamanhoCelula + espaco);
                 Color cor = LIGHTGRAY;
 
-                if (i < dueto->quantidadeTentativas) {
+                if (i < dueto->quantidadeTentativas &&
+                    (!dueto->acertou[tab] ||
+                     i < dueto->tentativaAcerto[tab])) {
                     if (dueto->cores[tab][i][j] == 2) {
                         cor = GREEN;
                     } else if (dueto->cores[tab][i][j] == 1) {
@@ -67,7 +68,9 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
 
                 char letra[2] = {'\0', '\0'};
 
-                if (i < dueto->quantidadeTentativas) {
+                if (i < dueto->quantidadeTentativas &&
+                    (!dueto->acertou[tab] ||
+                     i < dueto->tentativaAcerto[tab])) {
                     letra[0] = dueto->tentativas[i][j];
                 } else if (i == dueto->quantidadeTentativas &&
                            strlen(entrada) > (size_t)j &&
@@ -86,9 +89,6 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
         }
     }
 }
-
-
-
 
 void desenharJogo(Jogo *jogo, char entrada[]) {
     int inicioX = 150;
@@ -155,79 +155,162 @@ int main(void) {
     char entrada[TAMANHO + 1] = "";
 
     iniciarJogo(&jogo, palavra);
+
     Dueto dueto;
     char palavraDueto1[DUETO_TAMANHO + 1];
     char palavraDueto2[DUETO_TAMANHO + 1];
 
-
-if (!escolherPalavra(palavraDueto1)) {
-    printf("Erro ao obter a primeira palavra do Dueto.\n");
-    finalizarAPI();
-    liberarRanking(ranking);
-    return 1;
-}
-
-int palavraDiferente = 0;
-
-for (int tentativa = 0; tentativa < 10; tentativa++) {
-    if (escolherPalavra(palavraDueto2) &&
-        strcmp(palavraDueto1, palavraDueto2) != 0) {
-        palavraDiferente = 1;
-        break;
+    if (!escolherPalavra(palavraDueto1)) {
+        printf("Erro ao obter a primeira palavra do Dueto.\n");
+        finalizarAPI();
+        liberarRanking(ranking);
+        return 1;
     }
-}
 
-if (!palavraDiferente) {
-    printf("Erro ao obter duas palavras diferentes.\n");
-    finalizarAPI();
-    liberarRanking(ranking);
-    return 1;
-}
+    int palavraDiferente = 0;
 
-iniciarDueto(&dueto, palavraDueto1, palavraDueto2);
+    for (int tentativa = 0; tentativa < 10; tentativa++) {
+        if (escolherPalavra(palavraDueto2) &&
+            strcmp(palavraDueto1, palavraDueto2) != 0) {
+            palavraDiferente = 1;
+            break;
+        }
+    }
+
+    if (!palavraDiferente) {
+        printf("Erro ao obter duas palavras diferentes.\n");
+        finalizarAPI();
+        liberarRanking(ranking);
+        return 1;
+    }
+
+    iniciarDueto(&dueto, palavraDueto1, palavraDueto2);
+
     int registroSalvo = 0;
 
     InitWindow(LARGURA, ALTURA, "Termo");
     SetTargetFPS(60);
 
-while (!WindowShouldClose()) {
-    if (telaAtual == TELA_MENU) {
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            Vector2 mouse = GetMousePosition();
+    while (!WindowShouldClose()) {
+        if (telaAtual == TELA_MENU) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                Vector2 mouse = GetMousePosition();
 
-            if (CheckCollisionPointRec(
-                mouse, (Rectangle){150, 240, 300, 75})) {
-            telaAtual = TELA_TERMO;
+                if (CheckCollisionPointRec(
+                    mouse, (Rectangle){150, 240, 300, 75})) {
+                    telaAtual = TELA_TERMO;
+                }
+
+                if (CheckCollisionPointRec(
+                    mouse, (Rectangle){150, 340, 300, 75})) {
+                    telaAtual = TELA_DUETO;
+                    entrada[0] = '\0';
+                }
+            }
+
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
+            desenharMenu();
+            EndDrawing();
+
+            continue;
         }
-    }
 
-    BeginDrawing();
-    ClearBackground(RAYWHITE);
-    desenharMenu();
-    EndDrawing();
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            telaAtual = TELA_MENU;
+            entrada[0] = '\0';
+            continue;
+        }
 
-    continue;
-}
-if (IsKeyPressed(KEY_ESCAPE)) {
-    telaAtual = TELA_MENU;
-    continue;
-}
+        if (telaAtual == TELA_DUETO) {
+            if (!dueto.terminou) {
+                int tecla = GetCharPressed();
 
-if (!jogo.terminou) {
+                while (tecla > 0) {
+                    if (tecla >= 'a' && tecla <= 'z') {
+                        tecla = toupper(tecla);
+                    }
 
+                    if (tecla >= 'A' && tecla <= 'Z' &&
+                        strlen(entrada) < DUETO_TAMANHO) {
+                        int tamanho = (int)strlen(entrada);
+                        entrada[tamanho] = (char)tecla;
+                        entrada[tamanho + 1] = '\0';
+                    }
+
+                    tecla = GetCharPressed();
+                }
+
+                if (IsKeyPressed(KEY_BACKSPACE)) {
+                    int tamanho = (int)strlen(entrada);
+
+                    if (tamanho > 0) {
+                        entrada[tamanho - 1] = '\0';
+                    }
+                }
+
+                if (IsKeyPressed(KEY_ENTER) &&
+                    strlen(entrada) == DUETO_TAMANHO) {
+                    enviarTentativaDueto(&dueto, entrada);
+                    entrada[0] = '\0';
+                }
+            }
+
+            if (dueto.terminou && IsKeyPressed(KEY_R)) {
+                char nova1[DUETO_TAMANHO + 1];
+                char nova2[DUETO_TAMANHO + 1];
+
+                if (escolherPalavra(nova1)) {
+                    for (int tentativa = 0; tentativa < 10; tentativa++) {
+                        if (escolherPalavra(nova2) &&
+                            strcmp(nova1, nova2) != 0) {
+                            iniciarDueto(&dueto, nova1, nova2);
+                            entrada[0] = '\0';
+                            break;
+                        }
+                    }
+                }
+            }
+
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
+
+            DrawText("DUETO", 225, 35, 40, DARKGRAY);
+            desenharDueto(&dueto, entrada);
+
+            if (dueto.terminou) {
+                if (dueto.venceu) {
+                    DrawText("Voce acertou as duas palavras!",
+                             115, 565, 22, GREEN);
+                } else {
+                    DrawText("Fim das tentativas!", 180, 550, 24, RED);
+                    DrawText(TextFormat("%s / %s",
+                             dueto.palavras[0], dueto.palavras[1]),
+                             205, 585, 24, DARKGRAY);
+                }
+
+                DrawText("Pressione R para jogar novamente",
+                         105, 650, 20, DARKGRAY);
+            } else {
+                DrawText("Digite 5 letras e pressione ENTER",
+                         95, 610, 20, DARKGRAY);
+            }
+
+            EndDrawing();
+            continue;
+        }
+
+        if (!jogo.terminou) {
             int tecla = GetCharPressed();
 
             while (tecla > 0) {
-
                 if (tecla >= 'a' && tecla <= 'z') {
                     tecla = toupper(tecla);
                 }
 
                 if (tecla >= 'A' && tecla <= 'Z' &&
                     strlen(entrada) < TAMANHO) {
-
                     int tamanho = (int)strlen(entrada);
-
                     entrada[tamanho] = (char)tecla;
                     entrada[tamanho + 1] = '\0';
                 }
@@ -236,7 +319,6 @@ if (!jogo.terminou) {
             }
 
             if (IsKeyPressed(KEY_BACKSPACE)) {
-
                 int tamanho = (int)strlen(entrada);
 
                 if (tamanho > 0) {
@@ -246,14 +328,11 @@ if (!jogo.terminou) {
 
             if (IsKeyPressed(KEY_ENTER) &&
                 strlen(entrada) == TAMANHO) {
-
                 enviarTentativa(&jogo, entrada);
-
                 entrada[0] = '\0';
             }
 
         } else if (!registroSalvo) {
-
             adicionarResultado(&ranking, "Jogador",
                                jogo.quantidadeTentativas, jogo.venceu);
 
@@ -264,32 +343,24 @@ if (!jogo.terminou) {
         }
 
         if (jogo.terminou && IsKeyPressed(KEY_R)) {
-
             if (escolherPalavra(palavra)) {
-
                 iniciarJogo(&jogo, palavra);
-
                 entrada[0] = '\0';
                 registroSalvo = 0;
-
             } else {
                 printf("Erro ao obter nova palavra. Tente novamente.\n");
             }
         }
 
         BeginDrawing();
-
         ClearBackground(RAYWHITE);
 
         DrawText("TERMO", 220, 40, 40, DARKGRAY);
-
         desenharJogo(&jogo, entrada);
 
         if (jogo.terminou) {
-
             if (jogo.venceu) {
                 DrawText("Voce acertou!", 200, 610, 25, GREEN);
-
             } else {
                 DrawText(TextFormat("Palavra: %s", jogo.palavra),
                          200, 610, 25, RED);
@@ -297,9 +368,7 @@ if (!jogo.terminou) {
 
             DrawText("Pressione R para jogar novamente",
                      105, 650, 20, DARKGRAY);
-
         } else {
-
             DrawText("Digite 5 letras e pressione ENTER",
                      95, 610, 20, DARKGRAY);
         }
@@ -308,9 +377,7 @@ if (!jogo.terminou) {
     }
 
     CloseWindow();
-
     finalizarAPI();
-
     liberarRanking(ranking);
 
     return 0;

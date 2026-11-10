@@ -11,6 +11,7 @@ typedef struct {
     int cores[DUETO_QUANTIDADE_PALAVRAS][DUETO_MAX_TENTATIVAS][DUETO_TAMANHO];
     int quantidadeTentativas;
     int acertou[DUETO_QUANTIDADE_PALAVRAS];
+    int tentativaAcerto[DUETO_QUANTIDADE_PALAVRAS];
     int venceu;
     int terminou;
 } Dueto;
@@ -18,4 +19,4 @@ typedef struct {
 void iniciarDueto(Dueto *dueto, const char palavra1[], const char palavra2[]);
 int enviarTentativaDueto(Dueto *dueto, const char tentativa[]);
 
-#endif
+#endif

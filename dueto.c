@@ -48,8 +48,9 @@ int enviarTentativaDueto(Dueto *dueto, const char tentativa[]) {
             }
         }
 
-        if (strcmp(tentativa, palavra) == 0) {
-            dueto->acertou[tabuleiro] = 1;
+      if (strcmp(tentativa, palavra) == 0) {
+        dueto->acertou[tabuleiro] = 1;
+        dueto->tentativaAcerto[tabuleiro] = linha + 1;
         }
     }
 
