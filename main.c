@@ -153,6 +153,7 @@ int main(void) {
 
     Jogo jogo;
     char entrada[TAMANHO + 1] = "";
+    char mensagem[64] = "";
 
     iniciarJogo(&jogo, palavra);
 
@@ -233,6 +234,8 @@ int main(void) {
 
                     if (tecla >= 'A' && tecla <= 'Z' &&
                         strlen(entrada) < DUETO_TAMANHO) {
+                        
+                        mensagem[0] = '\0'; // msg do jogo desaparece qnd jogador comeca a digitar
                         int tamanho = (int)strlen(entrada);
                         entrada[tamanho] = (char)tecla;
                         entrada[tamanho + 1] = '\0';
@@ -251,7 +254,20 @@ int main(void) {
 
                 if (IsKeyPressed(KEY_ENTER) &&
                     strlen(entrada) == DUETO_TAMANHO) {
-                    enviarTentativaDueto(&dueto, entrada);
+
+                    int resultadoValidacao = validar_palavra(entrada);
+
+                    if (resultadoValidacao == 1) {
+                        enviarTentativaDueto(&dueto, entrada);
+                        mensagem[0] = '\0';
+                    } else if (resultadoValidacao == 0) {
+                        snprintf(mensagem, sizeof(mensagem),
+                                "palavra não encontrada...");
+                    } else {
+                        snprintf(mensagem, sizeof(mensagem),
+                                "não foi possível consultar o dicionário");
+                    }
+
                     entrada[0] = '\0';
                 }
             }
@@ -275,6 +291,7 @@ int main(void) {
             BeginDrawing();
             ClearBackground(RAYWHITE);
 
+            // ============== DUETO DUTOE ==============
             DrawText("DUETO", 225, 35, 40, DARKGRAY);
             desenharDueto(&dueto, entrada);
 
@@ -288,12 +305,12 @@ int main(void) {
                              dueto.palavras[0], dueto.palavras[1]),
                              205, 585, 24, DARKGRAY);
                 }
+                DrawText("Pressione R para jogar novamente", 105, 650, 20, DARKGRAY);
 
-                DrawText("Pressione R para jogar novamente",
-                         105, 650, 20, DARKGRAY);
+            } else if (mensagem[0] != '\0') {
+                DrawText(mensagem, 90, 610, 18, RED);
             } else {
-                DrawText("Digite 5 letras e pressione ENTER",
-                         95, 610, 20, DARKGRAY);
+                DrawText("Digite 5 letras e pressione enter", 95, 610, 20, DARKGRAY);
             }
 
             EndDrawing();
@@ -310,6 +327,8 @@ int main(void) {
 
                 if (tecla >= 'A' && tecla <= 'Z' &&
                     strlen(entrada) < TAMANHO) {
+                    
+                    mensagem[0] = '\0'; // msg do jogo desaparece qnd jogador comeca a digitar
                     int tamanho = (int)strlen(entrada);
                     entrada[tamanho] = (char)tecla;
                     entrada[tamanho + 1] = '\0';
@@ -328,7 +347,20 @@ int main(void) {
 
             if (IsKeyPressed(KEY_ENTER) &&
                 strlen(entrada) == TAMANHO) {
-                enviarTentativa(&jogo, entrada);
+
+                int resultadoValidacao = validar_palavra(entrada);
+
+                if (resultadoValidacao == 1) {
+                    enviarTentativa(&jogo, entrada);
+                    mensagem[0] = '\0';
+                } else if (resultadoValidacao == 0) {
+                    snprintf(mensagem, sizeof(mensagem),
+                            "palavra não encontrada...");
+                } else {
+                    snprintf(mensagem, sizeof(mensagem),
+                            "não foi possível consultar o dicionário");
+                }
+
                 entrada[0] = '\0';
             }
 
@@ -355,6 +387,8 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+
+        // =================== TERMO TERMO TERMO =============== 
         DrawText("TERMO", 220, 40, 40, DARKGRAY);
         desenharJogo(&jogo, entrada);
 
@@ -365,12 +399,12 @@ int main(void) {
                 DrawText(TextFormat("Palavra: %s", jogo.palavra),
                          200, 610, 25, RED);
             }
-
-            DrawText("Pressione R para jogar novamente",
-                     105, 650, 20, DARKGRAY);
+            DrawText("Pressione R para jogar novamente", 105, 650, 20, DARKGRAY);
+        
+        } else if (mensagem[0] != '\0') {
+            DrawText(mensagem, 90, 610, 18, RED);
         } else {
-            DrawText("Digite 5 letras e pressione ENTER",
-                     95, 610, 20, DARKGRAY);
+            DrawText("Digite 5 letras e pressione enter", 95, 610, 20, DARKGRAY);
         }
 
         EndDrawing();
