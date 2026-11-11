@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <curl/curl.h>
 
 #include "palavras.h"
 
 #define TAMANHO_PALAVRA 5
-#define TAMANHO_MAX_RESPOSTA 4096
+#define TAMANHO_MAX_RESPOSTA 65536
 
 #define URL_API "https://random-word-api.herokuapp.com/word?number=1&length=5&lang=pt-br"
 
@@ -136,7 +137,110 @@ static int converterPalavra(const char *json, char destino[6]) {
 
     return 1;
 }
+static int validar_respdicionario(const char *json) { // pra ver se 
+    if (json == NULL) {
+        return -1;
+    }
 
+    while (isspace((unsigned char)*json)) {
+        json++;
+    }
+
+    if (*json != '[') {
+        return -1; //problema comunicacao api
+    }
+
+    json++;
+
+    while (isspace((unsigned char)*json)) {
+        json++;
+    }
+
+    if (*json == ']') {
+        return 0; // resp nao encontrada
+    }
+
+    if (*json == '{') {
+        return 1; // resp OK
+    }
+
+    return -1;
+}
+
+int validar_palavra(const char tentativa[6]) {
+    //ver tamanho e conteudo da palavra
+    if (tentativa == NULL || strlen(tentativa) != TAMANHO_PALAVRA) {
+        return 0;
+    }
+
+    char palavraMinuscula[TAMANHO_PALAVRA + 1];
+
+    for (int i = 0; i < TAMANHO_PALAVRA; i++) {
+        if (tentativa[i] < 'A' || tentativa[i] > 'Z') {
+            return 0;
+        }
+
+        palavraMinuscula[i] =
+            (char)tolower((unsigned char)tentativa[i]);
+    }
+
+    palavraMinuscula[TAMANHO_PALAVRA] = '\0';
+
+    CURL *sessao = curl_easy_init();
+
+    if (sessao == NULL) {
+        return -1;
+    }
+    //preparar consulta da entrada
+    char *palavraCodificada =
+        curl_easy_escape(sessao, palavraMinuscula, 0);
+
+    if (palavraCodificada == NULL) {
+        curl_easy_cleanup(sessao);
+        return -1;
+    }
+
+    char endereco[256];
+
+    snprintf(endereco, sizeof(endereco),
+             "https://api.dicionario-aberto.net/word/%s",
+             palavraCodificada);
+
+    RespostaHTTP resposta = {NULL, 0};
+
+    //fzr requisicao
+    curl_easy_setopt(sessao, CURLOPT_URL, endereco);
+    curl_easy_setopt(sessao, CURLOPT_WRITEFUNCTION, receberResposta);
+    curl_easy_setopt(sessao, CURLOPT_WRITEDATA, &resposta);
+    curl_easy_setopt(sessao, CURLOPT_USERAGENT, "Termo-C/1.0");
+    curl_easy_setopt(sessao, CURLOPT_CONNECTTIMEOUT, 5L);
+    curl_easy_setopt(sessao, CURLOPT_TIMEOUT, 8L);
+    curl_easy_setopt(sessao, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(sessao, CURLOPT_FAILONERROR, 1L);
+    curl_easy_setopt(sessao, CURLOPT_NOSIGNAL, 1L);
+
+    CURLcode resultado = curl_easy_perform(sessao);
+
+    long codigoHTTP = 0;
+    curl_easy_getinfo(sessao, CURLINFO_RESPONSE_CODE, &codigoHTTP);
+
+    //procesa resultado
+    int validacao = -1;
+
+    if (codigoHTTP == 404) {
+        validacao = 0;
+    } else if (resultado == CURLE_OK &&
+               codigoHTTP == 200 && resposta.dados != NULL) {
+        validacao = validar_respdicionario(resposta.dados);
+    }
+    
+    //frees de memoria
+    free(resposta.dados);
+    curl_free(palavraCodificada);
+    curl_easy_cleanup(sessao);
+
+    return validacao;
+}
 int inicializarAPI(void) {
     return curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK;
 }
