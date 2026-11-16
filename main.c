@@ -31,8 +31,6 @@ void desenharMenu(void) {
     DrawRectangle(150, 440, 300, 75, GRAY);
     DrawText("QUARTETO", 210, 455, 30, WHITE);
 
-    DrawText("Quarteto em desenvolvimento",
-             145, 560, 18, DARKGRAY);
 }
 
 void desenharDueto(Dueto *dueto, char entrada[]) {
