@@ -193,6 +193,90 @@ void desenharJogo(Jogo *jogo, char entrada[]) {
     }
 }
 
+void desenharResultadoTermo(Jogo *jogo) {
+    DrawRectangle(65, 230, 470, 230, RAYWHITE);
+    DrawRectangleLines(65, 230, 470, 230, DARKGRAY);
+
+    if (jogo->venceu) {
+        DrawText("VOCE VENCEU!", 170, 255, 30, GREEN);
+    } else {
+        DrawText("VOCE PERDEU!", 170, 255, 30, RED);
+    }
+
+    DrawText("Palavra correta:", 185, 315, 22, DARKGRAY);
+
+    int larguraTexto = MeasureText(jogo->palavra, 30);
+    DrawText(jogo->palavra, (600 - larguraTexto) / 2,
+             350, 30, DARKGRAY);
+
+    DrawText("R - Jogar novamente", 175, 405, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 435, 18, DARKGRAY);
+}
+void desenharResultadoDueto(Dueto *dueto) {
+    DrawRectangle(65, 230, 470, 240, RAYWHITE);
+    DrawRectangleLines(65, 230, 470, 240, DARKGRAY);
+
+    if (dueto->venceu) {
+        DrawText("VOCE VENCEU!", 170, 255, 30, GREEN);
+    } else {
+        DrawText("VOCE PERDEU!", 170, 255, 30, RED);
+    }
+
+    DrawText("Palavras corretas:", 175, 310, 22, DARKGRAY);
+
+    const char *respostas = TextFormat(
+        "%s  /  %s",
+        dueto->palavras[0],
+        dueto->palavras[1]
+    );
+
+    int larguraTexto = MeasureText(respostas, 28);
+
+    DrawText(respostas, (600 - larguraTexto) / 2,
+             350, 28, DARKGRAY);
+
+    DrawText("R - Jogar novamente", 175, 405, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 440, 18, DARKGRAY);
+}
+
+void desenharResultadoQuarteto(Quarteto *quarteto) {
+    DrawRectangle(55, 220, 490, 270, RAYWHITE);
+    DrawRectangleLines(55, 220, 490, 270, DARKGRAY);
+
+    if (quarteto->venceu) {
+        DrawText("VOCE VENCEU!", 170, 245, 30, GREEN);
+    } else {
+        DrawText("VOCE PERDEU!", 170, 245, 30, RED);
+    }
+
+    DrawText("Palavras corretas:", 175, 300, 22, DARKGRAY);
+
+    const char *linha1 = TextFormat(
+        "%s / %s",
+        quarteto->palavras[0],
+        quarteto->palavras[1]
+    );
+
+    DrawText(linha1, (600 - MeasureText(linha1, 25)) / 2,
+             340, 25, DARKGRAY);
+
+    const char *linha2 = TextFormat(
+        "%s / %s",
+        quarteto->palavras[2],
+        quarteto->palavras[3]
+    );
+
+    DrawText(linha2, (600 - MeasureText(linha2, 25)) / 2,
+             375, 25, DARKGRAY);
+
+    DrawText("R - Jogar novamente", 175, 430, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 460, 18, DARKGRAY);
+}
+
+
+
+
+
 int main(void) {
     int telaAtual = TELA_MENU;
 
@@ -297,10 +381,9 @@ iniciarQuarteto(&quarteto,
 
 
     int registroSalvo = 0;
-
-    InitWindow(LARGURA, ALTURA, "Termo");
-    SetTargetFPS(60);
-
+        InitWindow(LARGURA, ALTURA, "Termo");
+        SetExitKey(KEY_NULL);
+        SetTargetFPS(60);
     while (!WindowShouldClose()) {
         if (telaAtual == TELA_MENU) {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -472,17 +555,8 @@ iniciarQuarteto(&quarteto,
             DrawText("DUETO", 225, 35, 40, DARKGRAY);
             desenharDueto(&dueto, entrada);
 
-            if (dueto.terminou) {
-                if (dueto.venceu) {
-                    DrawText("Voce acertou as duas palavras!",
-                             115, 565, 22, GREEN);
-                } else {
-                    DrawText("Fim das tentativas!", 180, 550, 24, RED);
-                    DrawText(TextFormat("%s / %s",
-                             dueto.palavras[0], dueto.palavras[1]),
-                             205, 585, 24, DARKGRAY);
-                }
-                DrawText("Pressione R para jogar novamente", 105, 650, 20, DARKGRAY);
+           if (dueto.terminou) {
+                desenharResultadoDueto(&dueto);
 
             } else if (mensagem[0] != '\0') {
                 DrawText(mensagem, 90, 610, 18, RED);
@@ -569,14 +643,8 @@ iniciarQuarteto(&quarteto,
         DrawText("TERMO", 220, 40, 40, DARKGRAY);
         desenharJogo(&jogo, entrada);
 
-        if (jogo.terminou) {
-            if (jogo.venceu) {
-                DrawText("Voce acertou!", 200, 610, 25, GREEN);
-            } else {
-                DrawText(TextFormat("Palavra: %s", jogo.palavra),
-                         200, 610, 25, RED);
-            }
-            DrawText("Pressione R para jogar novamente", 105, 650, 20, DARKGRAY);
+       if (jogo.terminou) {
+            desenharResultadoTermo(&jogo);
         
         } else if (mensagem[0] != '\0') {
             DrawText(mensagem, 90, 610, 18, RED);
