@@ -422,7 +422,52 @@ iniciarQuarteto(&quarteto,
         }
 
         if (telaAtual == TELA_QUARTETO) {
-    if (!quarteto.terminou) {
+                if (quarteto.terminou && IsKeyPressed(KEY_R)) {
+        char novasPalavras[QUARTETO_QUANTIDADE_PALAVRAS]
+                          [QUARTETO_TAMANHO + 1];
+
+        int quantidade = 0;
+        int tentativas = 0;
+
+        while (quantidade < QUARTETO_QUANTIDADE_PALAVRAS &&
+               tentativas < 40) {
+
+            char candidata[QUARTETO_TAMANHO + 1];
+            tentativas++;
+
+            if (!escolherPalavra(candidata)) {
+                continue;
+            }
+
+            int repetida = 0;
+
+            for (int i = 0; i < quantidade; i++) {
+                if (strcmp(candidata, novasPalavras[i]) == 0) {
+                    repetida = 1;
+                    break;
+                }
+            }
+
+            if (!repetida) {
+                strcpy(novasPalavras[quantidade], candidata);
+                quantidade++;
+            }
+        }
+
+        if (quantidade == QUARTETO_QUANTIDADE_PALAVRAS) {
+            iniciarQuarteto(&quarteto,
+                           novasPalavras[0],
+                           novasPalavras[1],
+                           novasPalavras[2],
+                           novasPalavras[3]);
+
+            entrada[0] = '\0';
+            mensagem[0] = '\0';
+        } else {
+            printf("Erro ao obter novas palavras do Quarteto.\n");
+        }
+    }
+            if (!quarteto.terminou) {
         int tecla = GetCharPressed();
 
         while (tecla > 0) {
@@ -472,13 +517,19 @@ iniciarQuarteto(&quarteto,
     }
 
     BeginDrawing();
-    ClearBackground(RAYWHITE);
+ClearBackground(RAYWHITE);
 
-    DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
-    desenharQuarteto(&quarteto, entrada);
+DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
+desenharQuarteto(&quarteto, entrada);
 
-    EndDrawing();
-    continue;
+if (quarteto.terminou) {
+    desenharResultadoQuarteto(&quarteto);
+} else if (mensagem[0] != '\0') {
+    DrawText(mensagem, 115, 665, 18, RED);
+}
+
+EndDrawing();
+continue;
 }
 
 
