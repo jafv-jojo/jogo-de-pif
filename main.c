@@ -8,6 +8,7 @@
 #include "palavras.h"
 #include "ranking.h"
 #include "dueto.h"
+#include "quarteto.h"
 
 #define LARGURA 600
 #define ALTURA 700
@@ -15,6 +16,7 @@
 #define TELA_MENU 0
 #define TELA_TERMO 1
 #define TELA_DUETO 2
+#define TELA_QUARTETO 3
 
 void desenharMenu(void) {
     DrawText("JOGO DE PIF", 155, 90, 40, DARKGRAY);
@@ -89,6 +91,65 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
         }
     }
 }
+
+
+void desenharQuarteto(Quarteto *quarteto, char entrada[]) {
+    int tamanhoCelula = 27;
+    int espaco = 3;
+
+    for (int tab = 0; tab < QUARTETO_QUANTIDADE_PALAVRAS; tab++) {
+        int coluna = tab % 2;
+        int linhaTabuleiro = tab / 2;
+        int inicioX = 80 + coluna * 290;
+        int inicioY = 100 + linhaTabuleiro * 290;
+
+        DrawText(TextFormat("PALAVRA %d", tab + 1),
+                 inicioX + 45, inicioY - 25, 18, DARKGRAY);
+
+        for (int i = 0; i < QUARTETO_MAX_TENTATIVAS; i++) {
+            for (int j = 0; j < QUARTETO_TAMANHO; j++) {
+                int x = inicioX + j * (tamanhoCelula + espaco);
+                int y = inicioY + i * (tamanhoCelula + espaco);
+                Color cor = LIGHTGRAY;
+
+                int mostrar = i < quarteto->quantidadeTentativas &&
+                    (!quarteto->acertou[tab] ||
+                     i < quarteto->tentativaAcerto[tab]);
+
+                if (mostrar) {
+                    if (quarteto->cores[tab][i][j] == 2) {
+                        cor = GREEN;
+                    } else if (quarteto->cores[tab][i][j] == 1) {
+                        cor = GOLD;
+                    } else {
+                        cor = GRAY;
+                    }
+                }
+
+                DrawRectangle(x, y, tamanhoCelula, tamanhoCelula, cor);
+                DrawRectangleLines(x, y, tamanhoCelula,
+                                   tamanhoCelula, DARKGRAY);
+
+                char letra[2] = {'\0', '\0'};
+
+                if (mostrar) {
+                    letra[0] = quarteto->tentativas[i][j];
+                } else if (i == quarteto->quantidadeTentativas &&
+                           !quarteto->acertou[tab] &&
+                           strlen(entrada) > (size_t)j) {
+                    letra[0] = entrada[j];
+                }
+
+                if (letra[0] != '\0') {
+                    DrawText(letra, x + 6, y + 3, 20, WHITE);
+                }
+            }
+        }
+
+    }
+}
+
+
 
 void desenharJogo(Jogo *jogo, char entrada[]) {
     int inicioX = 150;
@@ -187,6 +248,54 @@ int main(void) {
 
     iniciarDueto(&dueto, palavraDueto1, palavraDueto2);
 
+Quarteto quarteto;
+char palavrasQuarteto[QUARTETO_QUANTIDADE_PALAVRAS]
+                    [QUARTETO_TAMANHO + 1];
+
+int quantidadePalavras = 0;
+int tentativasBusca = 0;
+
+while (quantidadePalavras < QUARTETO_QUANTIDADE_PALAVRAS &&
+       tentativasBusca < 40) {
+
+    char candidata[QUARTETO_TAMANHO + 1];
+    tentativasBusca++;
+
+    if (!escolherPalavra(candidata)) {
+        continue;
+    }
+
+    int repetida = 0;
+
+    for (int i = 0; i < quantidadePalavras; i++) {
+        if (strcmp(candidata, palavrasQuarteto[i]) == 0) {
+            repetida = 1;
+            break;
+        }
+    }
+
+    if (!repetida) {
+        strcpy(palavrasQuarteto[quantidadePalavras], candidata);
+        quantidadePalavras++;
+    }
+}
+
+if (quantidadePalavras != QUARTETO_QUANTIDADE_PALAVRAS) {
+    printf("Erro ao obter quatro palavras diferentes.\n");
+    finalizarAPI();
+    liberarRanking(ranking);
+    return 1;
+}
+
+iniciarQuarteto(&quarteto,
+                palavrasQuarteto[0],
+                palavrasQuarteto[1],
+                palavrasQuarteto[2],
+                palavrasQuarteto[3]);
+
+
+
+
     int registroSalvo = 0;
 
     InitWindow(LARGURA, ALTURA, "Termo");
@@ -207,6 +316,12 @@ int main(void) {
                     telaAtual = TELA_DUETO;
                     entrada[0] = '\0';
                 }
+                if (CheckCollisionPointRec(
+                    mouse, (Rectangle){150, 440, 300, 75})) {
+                    telaAtual = TELA_QUARTETO;
+                    entrada[0] = '\0';
+                    mensagem[0] = '\0';
+                }
             }
 
             BeginDrawing();
@@ -222,6 +337,68 @@ int main(void) {
             entrada[0] = '\0';
             continue;
         }
+
+        if (telaAtual == TELA_QUARTETO) {
+    if (!quarteto.terminou) {
+        int tecla = GetCharPressed();
+
+        while (tecla > 0) {
+            if (tecla >= 'a' && tecla <= 'z') {
+                tecla = toupper(tecla);
+            }
+
+            if (tecla >= 'A' && tecla <= 'Z' &&
+                strlen(entrada) < QUARTETO_TAMANHO) {
+
+                mensagem[0] = '\0';
+
+                int tamanho = (int)strlen(entrada);
+                entrada[tamanho] = (char)tecla;
+                entrada[tamanho + 1] = '\0';
+            }
+
+            tecla = GetCharPressed();
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE)) {
+            int tamanho = (int)strlen(entrada);
+
+            if (tamanho > 0) {
+                entrada[tamanho - 1] = '\0';
+            }
+        }
+
+        if (IsKeyPressed(KEY_ENTER) &&
+            strlen(entrada) == QUARTETO_TAMANHO) {
+
+            int resultado = validar_palavra(entrada);
+
+            if (resultado == 1) {
+                enviarTentativaQuarteto(&quarteto, entrada);
+                mensagem[0] = '\0';
+            } else if (resultado == 0) {
+                snprintf(mensagem, sizeof(mensagem),
+                         "Palavra nao encontrada");
+            } else {
+                snprintf(mensagem, sizeof(mensagem),
+                         "Erro ao consultar o dicionario");
+            }
+
+            entrada[0] = '\0';
+        }
+    }
+
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
+    desenharQuarteto(&quarteto, entrada);
+
+    EndDrawing();
+    continue;
+}
+
+
 
         if (telaAtual == TELA_DUETO) {
             if (!dueto.terminou) {
