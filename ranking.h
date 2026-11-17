@@ -1,3 +1,4 @@
+
 #ifndef RANKING_H
 #define RANKING_H
 
@@ -8,11 +9,24 @@ typedef struct Resultado {
     struct Resultado *proximo;
 } Resultado;
 
+typedef struct {
+    int totalPartidas;
+    int totalVitorias;
+    int sequenciaAtual;
+    int melhorSequencia;
+} Estatisticas;
+
 int carregarRanking(Resultado **inicio, char arquivo[]);
+
 int adicionarResultado(Resultado **inicio, char nome[],
                        int tentativas, int venceu);
+
 int salvarResultado(char arquivo[], char nome[],
                     int tentativas, int venceu);
+
+void calcularEstatisticas(Resultado *inicio,
+                          Estatisticas *estatisticas);
+
 void liberarRanking(Resultado *inicio);
 
 #endif
