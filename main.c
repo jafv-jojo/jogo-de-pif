@@ -19,11 +19,11 @@
 #define TELA_QUARTETO 3
 
 void desenharMenu(void) {
-    DrawText("JOGO DE PIF", 155, 90, 40, DARKGRAY);
+    DrawText("CERMO", 155, 90, 40, DARKGRAY);
     DrawText("Escolha o modo de jogo", 155, 155, 22, GRAY);
 
     DrawRectangle(150, 240, 300, 75, DARKGREEN);
-    DrawText("TERMO", 245, 255, 30, WHITE);
+    DrawText("NORMAL", 245, 255, 30, WHITE);
 
     DrawRectangle(150, 340, 300, 75, GRAY);
     DrawText("DUETO", 245, 355, 30, WHITE);
@@ -379,7 +379,7 @@ iniciarQuarteto(&quarteto,
 
 
     int registroSalvo = 0;
-        InitWindow(LARGURA, ALTURA, "Termo");
+        InitWindow(LARGURA, ALTURA, "Cermo");
         SetExitKey(KEY_NULL);
         SetTargetFPS(60);
     while (!WindowShouldClose()) {
@@ -689,7 +689,7 @@ continue;
 
 
         // =================== TERMO TERMO TERMO =============== 
-        DrawText("TERMO", 220, 40, 40, DARKGRAY);
+        DrawText("CERMO", 220, 40, 40, DARKGRAY);
         desenharJogo(&jogo, entrada);
 
        if (jogo.terminou) {
