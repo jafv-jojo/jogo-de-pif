@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h> // adição
+#include <math.h> 
 
 #include "jogo.h"
 #include "palavras.h"
@@ -297,7 +297,7 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
 ██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██      █████   ██████   ██████   ██████  
 */
 
-void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocamentoX) { // edição
+void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocamentoX) { 
 
     int inicioX = 150;
     int inicioY = 150;
@@ -311,9 +311,9 @@ void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocame
             int x = inicioX + j * (tamanhoCelula + espaco);
             int y = inicioY + i * (tamanhoCelula + espaco);
 
-            if (i == linhaTremendo) { // adição
-                x += (int)deslocamentoX; // adição
-            } // adição
+            if (i == linhaTremendo) { 
+                x += (int)deslocamentoX; 
+            } 
 
             Color cor = LIGHTGRAY;
 
@@ -357,40 +357,39 @@ void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocame
 ██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██   ██ ██           ██ ██    ██ ██         ██    ██   ██ ██   ██ ██    ██      ██  
 ██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██     ██   ██ ███████ ███████  ██████  ███████    ██    ██   ██ ██████   ██████  ███████  
 */
-void desenharResultadoTermo(Jogo *jogo) {
+void desenharResultadoTermo(Jogo *jogo, int deslocamento_resultadoY) {
 
-    DrawRectangle(65, 230, 470, 230, RAYWHITE);
-    DrawRectangleLines(65, 230, 470, 230, DARKGRAY);
+    DrawRectangle(65, 230 + deslocamento_resultadoY, 470, 230, RAYWHITE);
+    DrawRectangleLines(65, 230 + deslocamento_resultadoY, 470, 230, DARKGRAY);
 
     if (jogo->venceu) {
-        DrawText("VOCE VENCEU!", 170, 255, 30, GREEN);
+        DrawText("VOCE VENCEU!", 170, 255 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU!", 170, 255, 30, RED);
+        DrawText("VOCE PERDEU... :'(", 170, 255 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavra correta:", 185, 315, 22, DARKGRAY);
+    DrawText("Palavra correta:", 185, 315 + deslocamento_resultadoY, 22, DARKGRAY);
 
     int larguraTexto = MeasureText(jogo->palavra, 30);
 
     DrawText(jogo->palavra, (600 - larguraTexto) / 2,
-             350, 30, DARKGRAY);
+             350  + deslocamento_resultadoY, 30, DARKGRAY);
 
-    DrawText("R - Jogar novamente", 175, 405, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 435, 18, DARKGRAY);
+    DrawText("R - Jogar novamente", 175, 405 + deslocamento_resultadoY, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 435 + deslocamento_resultadoY, 18, DARKGRAY);
 }
 
-void desenharResultadoDueto(Dueto *dueto) {
-
-    DrawRectangle(65, 230, 470, 240, RAYWHITE);
-    DrawRectangleLines(65, 230, 470, 240, DARKGRAY);
+void desenharResultadoDueto(Dueto *dueto, int deslocamento_resultadoY) {
+    DrawRectangle(65, 230 + deslocamento_resultadoY, 470, 240, RAYWHITE);
+    DrawRectangleLines(65, 230 + deslocamento_resultadoY, 470, 240, DARKGRAY);
 
     if (dueto->venceu) {
-        DrawText("VOCE VENCEU!", 170, 255, 30, GREEN);
+        DrawText("VOCE VENCEU!", 170, 255 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU!", 170, 255, 30, RED);
+        DrawText("VOCE PERDEU... :'(", 170, 255 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavras corretas:", 175, 310, 22, DARKGRAY);
+    DrawText("Palavras corretas:", 175, 310 + deslocamento_resultadoY, 22, DARKGRAY);
 
     const char *respostas = TextFormat(
         "%s  /  %s",
@@ -401,24 +400,24 @@ void desenharResultadoDueto(Dueto *dueto) {
     int larguraTexto = MeasureText(respostas, 28);
 
     DrawText(respostas, (600 - larguraTexto) / 2,
-             350, 28, DARKGRAY);
+             350 + deslocamento_resultadoY, 28, DARKGRAY);
 
-    DrawText("R - Jogar novamente", 175, 405, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 440, 18, DARKGRAY);
+    DrawText("R - Jogar novamente", 175, 405 + deslocamento_resultadoY, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 440 + deslocamento_resultadoY, 18, DARKGRAY);
 }
 
-void desenharResultadoQuarteto(Quarteto *quarteto) {
+void desenharResultadoQuarteto(Quarteto *quarteto, int deslocamento_resultadoY) {
 
-    DrawRectangle(55, 220, 490, 270, RAYWHITE);
-    DrawRectangleLines(55, 220, 490, 270, DARKGRAY);
+    DrawRectangle(55, 220 + deslocamento_resultadoY, 490, 270, RAYWHITE);
+    DrawRectangleLines(55, 220 + deslocamento_resultadoY, 490, 270, DARKGRAY);
 
     if (quarteto->venceu) {
-        DrawText("VOCE VENCEU!", 170, 245, 30, GREEN);
+        DrawText("VOCE VENCEU!", 170, 245 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU!", 170, 245, 30, RED);
+        DrawText("VOCE PERDEU... :'(", 170, 245 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavras corretas:", 175, 300, 22, DARKGRAY);
+    DrawText("Palavras corretas:", 175, 300 + deslocamento_resultadoY, 22, DARKGRAY);
 
     const char *linha1 = TextFormat(
         "%s / %s",
@@ -427,7 +426,7 @@ void desenharResultadoQuarteto(Quarteto *quarteto) {
     );
 
     DrawText(linha1, (600 - MeasureText(linha1, 25)) / 2,
-             340, 25, DARKGRAY);
+             340 + deslocamento_resultadoY, 25, DARKGRAY);
 
     const char *linha2 = TextFormat(
         "%s / %s",
@@ -436,28 +435,35 @@ void desenharResultadoQuarteto(Quarteto *quarteto) {
     );
 
     DrawText(linha2, (600 - MeasureText(linha2, 25)) / 2,
-             375, 25, DARKGRAY);
+             375 + deslocamento_resultadoY, 25, DARKGRAY);
 
-    DrawText("R - Jogar novamente", 175, 430, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 460, 18, DARKGRAY);
+    DrawText("R - Jogar novamente", 175, 430 + deslocamento_resultadoY, 20, DARKGRAY);
+    DrawText("ESC - Voltar ao menu", 175, 460 + deslocamento_resultadoY, 18, DARKGRAY);
 }
-///////////////////////////////////////////////////////////
-//
-//
-//                     MAIN
-//
-//
-//////////////////////////////////////////////////////////
+/*
+███    ███    █████    ██   ███    ██ 
+████  ████   ██   ██   ██   ████   ██ 
+██ ████ ██   ██   ██   ██   ██ ██  ██ 
+██  ██  ██   ███████   ██   ██  ██ ██ 
+██      ██   ██   ██   ██   ██   ████
+██      ██   ██   ██   ██   ██     ██
+*/
 
 int main(void) {
-    const float duracaoTremida = 0.50f; // adição
-    double inicioTremor = -1.0; // adição
+    // variaveis animação de tremer a linha qnd a resposta é inválida
+    const float duracaoTremida = 0.50f; 
+    double inicioTremor = -1.0; 
+    int linhaTremendo = -1; 
 
-    int linhaTremendo = -1; // adição
+    // variaveis da animação da mensagem de resultado
+    const float duracaoAnimResultado = 1.2f;
+    const float distanciaAnimResultado = 480.0f;
+    double inicioAnimResultado = -1.0;
+
 
 
     int telaAtual = TELA_MENU;
-
+    
     if (!inicializarAPI()) {
         printf("Erro ao inicializar a API.\n");
         return 1;
@@ -574,36 +580,50 @@ int main(void) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
-        float deslocamentoX = 0.0f;
+        float deslocamentoX = 0.0f; // 584 - 603: calculos pra animacao de tremer linha
 
         if (inicioTremor >= 0.0) {
-
             float tempoDecorrido = (float)(GetTime() - inicioTremor);
 
             if (tempoDecorrido < duracaoTremida) {
-
                 float intensidade = 1.0f - (tempoDecorrido / duracaoTremida);
-
                 deslocamentoX =
-                    sinf(tempoDecorrido * 70.0f)
-                    * 20.0f * intensidade;
-
+                    sinf(tempoDecorrido * 70.0f) * 20.0f * intensidade;
             } else {
-
                 inicioTremor = -1.0;
                 linhaTremendo = -1;
             }
         }
 
+        int resultado_aparecendo =
+            (telaAtual == TELA_TERMO && jogo.terminou) ||
+            (telaAtual == TELA_DUETO && dueto.terminou) ||
+            (telaAtual == TELA_QUARTETO && quarteto.terminou);
+
+        if (resultado_aparecendo && inicioAnimResultado < 0.0) {
+            inicioAnimResultado = GetTime();
+        }
+
+        float deslocamento_resultado = 0.0f;
+
+        if (resultado_aparecendo && inicioAnimResultado >= 0.0) {
+            float tempo_passado = (float)(GetTime() - inicioAnimResultado);
+
+            if (tempo_passado < duracaoAnimResultado) {
+                float restante = 1.0f - (tempo_passado / duracaoAnimResultado);
+                deslocamento_resultado = distanciaAnimResultado * restante * restante;
+            }
+        }
+
+        int deslocamento_resultadoY = (int)deslocamento_resultado;
+
         if (telaAtual == TELA_MENU) {
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-
                 Vector2 mouse = GetMousePosition();
 
                 if (CheckCollisionPointRec(
                     mouse, (Rectangle){150, 240, 300, 75})) {
-
                     telaAtual = TELA_TERMO;
                 }
 
@@ -622,9 +642,7 @@ int main(void) {
                     mensagem[0] = '\0';
                 }
 
-                if (CheckCollisionPointRec(
-                    mouse, (Rectangle){150, 540, 300, 75})) {
-
+                if (CheckCollisionPointRec(mouse, (Rectangle){150, 540, 300, 75})) {
                     telaAtual = TELA_SEQUENCIA;
                 }
             }
@@ -641,7 +659,6 @@ int main(void) {
         }
 
         if (telaAtual == TELA_SEQUENCIA) {
-
             if (IsKeyPressed(KEY_ESCAPE)) {
                 telaAtual = TELA_MENU;
                 continue;
@@ -710,7 +727,8 @@ int main(void) {
                                    novasPalavras[1],
                                    novasPalavras[2],
                                    novasPalavras[3]);
-
+                    
+                    inicioAnimResultado = -1.0;
                     entrada[0] = '\0';
                     mensagem[0] = '\0';
 
@@ -792,7 +810,7 @@ int main(void) {
 
             if (quarteto.terminou) {
 
-                desenharResultadoQuarteto(&quarteto);
+                desenharResultadoQuarteto(&quarteto, deslocamento_resultadoY);
 
             } else if (mensagem[0] != '\0') {
 
@@ -875,14 +893,12 @@ int main(void) {
                 char nova2[DUETO_TAMANHO + 1];
 
                 if (escolherPalavra(nova1)) {
-
                     for (int tentativa = 0; tentativa < 10; tentativa++) {
-
                         if (escolherPalavra(nova2) &&
                             strcmp(nova1, nova2) != 0) {
 
                             iniciarDueto(&dueto, nova1, nova2);
-
+                            inicioAnimResultado = -1.0;
                             entrada[0] = '\0';
 
                             break;
@@ -901,7 +917,7 @@ int main(void) {
 
             if (dueto.terminou) {
 
-                desenharResultadoDueto(&dueto);
+                desenharResultadoDueto(&dueto, deslocamento_resultadoY);
 
             } else if (mensagem[0] != '\0') {
 
@@ -994,12 +1010,17 @@ int main(void) {
         if (jogo.terminou && IsKeyPressed(KEY_R)) {
 
             if (escolherPalavra(palavra)) {
-
                 iniciarJogo(&jogo, palavra);
 
                 entrada[0] = '\0';
+
+                // variaveis para animacoes:
+                inicioAnimResultado = -1.0;
                 inicioTremor = -1.0;
                 linhaTremendo = -1;
+
+                //
+
                 registroSalvo = 0;
 
             } else {
@@ -1014,11 +1035,11 @@ int main(void) {
 
         DrawText("CERMO", 220, 40, 40, DARKGRAY);
 
-        desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); // edição
+        desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); 
 
         if (jogo.terminou) {
 
-            desenharResultadoTermo(&jogo);
+            desenharResultadoTermo(&jogo, deslocamento_resultadoY);
 
         } else if (mensagem[0] != '\0') {
 
