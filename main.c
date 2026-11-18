@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h> // adição
 
 #include "jogo.h"
 #include "palavras.h"
@@ -18,6 +19,13 @@
 #define TELA_QUARTETO 3
 #define TELA_SEQUENCIA 4
 
+/*
+██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████      ███    ███ ███████ ███    ██ ██    ██ 
+██   ██ ██      ██      ██      ████   ██ ██   ██ ██   ██ ██   ██     ████  ████ ██      ████   ██ ██    ██ 
+██   ██ █████   ███████ █████   ██ ██  ██ ███████ ███████ ██████      ██ ████ ██ █████   ██ ██  ██ ██    ██ 
+██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██  ██  ██ ██      ██  ██ ██ ██    ██ 
+██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██     ██      ██ ███████ ██   ████  ██████  
+*/
 void desenharMenu(void) {
 
     DrawText("CERMO",
@@ -126,8 +134,15 @@ void desenharSequencia(Resultado *historico) {
 
     DrawText("ESC - Voltar ao menu", 195, 665, 18, DARKGRAY);
 }
+/*
+██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████      ██████  ██    ██ ███████ ████████  ██████  
+██   ██ ██      ██      ██      ████   ██ ██   ██ ██   ██ ██   ██     ██   ██ ██    ██ ██         ██    ██    ██ 
+██   ██ █████   ███████ █████   ██ ██  ██ ███████ ███████ ██████      ██   ██ ██    ██ █████      ██    ██    ██ 
+██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██   ██ ██    ██ ██         ██    ██    ██ 
+██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██     ██████   ██████  ███████    ██     ██████  
+*/
 
-void desenharDueto(Dueto *dueto, char entrada[]) {
+void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float deslocamentoX) {
 
     int tamanhoCelula = 43;
     int espaco = 5;
@@ -146,6 +161,10 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
 
                 int x = inicioX + j * (tamanhoCelula + espaco);
                 int y = inicioY + i * (tamanhoCelula + espaco);
+                
+                if (i == linhaTremendo) {
+                    x += (int)deslocamentoX;
+                }
 
                 Color cor = LIGHTGRAY;
 
@@ -194,7 +213,15 @@ void desenharDueto(Dueto *dueto, char entrada[]) {
     }
 }
 
-void desenharQuarteto(Quarteto *quarteto, char entrada[]) {
+/*
+██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████       ██████  ██    ██  █████  ██████  ████████ ███████ ████████  ██████  
+██   ██ ██      ██      ██      ████   ██ ██   ██ ██   ██ ██   ██     ██    ██ ██    ██ ██   ██ ██   ██    ██    ██         ██    ██    ██ 
+██   ██ █████   ███████ █████   ██ ██  ██ ███████ ███████ ██████      ██    ██ ██    ██ ███████ ██████     ██    █████      ██    ██    ██ 
+██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██ ▄▄ ██ ██    ██ ██   ██ ██   ██    ██    ██         ██    ██    ██ 
+██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██      ██████   ██████  ██   ██ ██   ██    ██    ███████    ██     ██████  
+*/
+
+void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, float deslocamentoX) {
 
     int tamanhoCelula = 27;
     int espaco = 3;
@@ -216,6 +243,10 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[]) {
 
                 int x = inicioX + j * (tamanhoCelula + espaco);
                 int y = inicioY + i * (tamanhoCelula + espaco);
+                
+                if (i == linhaTremendo) {
+                    x += (int)deslocamentoX;
+                }
 
                 Color cor = LIGHTGRAY;
 
@@ -258,8 +289,15 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[]) {
         }
     }
 }
+/*
+██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████           ██  ██████   ██████   ██████  
+██   ██ ██      ██      ██      ████   ██ ██   ██ ██   ██ ██   ██          ██ ██    ██ ██       ██    ██ 
+██   ██ █████   ███████ █████   ██ ██  ██ ███████ ███████ ██████           ██ ██    ██ ██   ███ ██    ██ 
+██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██   ██ ██    ██ ██    ██ ██    ██ 
+██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██      █████   ██████   ██████   ██████  
+*/
 
-void desenharJogo(Jogo *jogo, char entrada[]) {
+void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocamentoX) { // edição
 
     int inicioX = 150;
     int inicioY = 150;
@@ -272,6 +310,10 @@ void desenharJogo(Jogo *jogo, char entrada[]) {
 
             int x = inicioX + j * (tamanhoCelula + espaco);
             int y = inicioY + i * (tamanhoCelula + espaco);
+
+            if (i == linhaTremendo) { // adição
+                x += (int)deslocamentoX; // adição
+            } // adição
 
             Color cor = LIGHTGRAY;
 
@@ -308,7 +350,13 @@ void desenharJogo(Jogo *jogo, char entrada[]) {
         }
     }
 }
-
+/*
+██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████      ██████  ███████ ███████ ██    ██ ██      ████████  █████  ██████   ██████  ███████  
+██   ██ ██      ██      ██      ████   ██ ██   ██ ██   ██ ██   ██     ██   ██ ██      ██      ██    ██ ██         ██    ██   ██ ██   ██ ██    ██ ██       
+██   ██ █████   ███████ █████   ██ ██  ██ ███████ ███████ ██████      ██████  █████   ███████ ██    ██ ██         ██    ███████ ██   ██ ██    ██ ███████  
+██   ██ ██           ██ ██      ██  ██ ██ ██   ██ ██   ██ ██   ██     ██   ██ ██           ██ ██    ██ ██         ██    ██   ██ ██   ██ ██    ██      ██  
+██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██     ██   ██ ███████ ███████  ██████  ███████    ██    ██   ██ ██████   ██████  ███████  
+*/
 void desenharResultadoTermo(Jogo *jogo) {
 
     DrawRectangle(65, 230, 470, 230, RAYWHITE);
@@ -393,8 +441,20 @@ void desenharResultadoQuarteto(Quarteto *quarteto) {
     DrawText("R - Jogar novamente", 175, 430, 20, DARKGRAY);
     DrawText("ESC - Voltar ao menu", 175, 460, 18, DARKGRAY);
 }
+///////////////////////////////////////////////////////////
+//
+//
+//                     MAIN
+//
+//
+//////////////////////////////////////////////////////////
 
 int main(void) {
+    const float duracaoTremida = 0.50f; // adição
+    double inicioTremor = -1.0; // adição
+
+    int linhaTremendo = -1; // adição
+
 
     int telaAtual = TELA_MENU;
 
@@ -514,6 +574,26 @@ int main(void) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+        float deslocamentoX = 0.0f;
+
+        if (inicioTremor >= 0.0) {
+
+            float tempoDecorrido = (float)(GetTime() - inicioTremor);
+
+            if (tempoDecorrido < duracaoTremida) {
+
+                float intensidade = 1.0f - (tempoDecorrido / duracaoTremida);
+
+                deslocamentoX =
+                    sinf(tempoDecorrido * 70.0f)
+                    * 20.0f * intensidade;
+
+            } else {
+
+                inicioTremor = -1.0;
+                linhaTremendo = -1;
+            }
+        }
 
         if (telaAtual == TELA_MENU) {
 
@@ -676,6 +756,11 @@ int main(void) {
                     strlen(entrada) == QUARTETO_TAMANHO) {
 
                     int resultado = validar_palavra(entrada);
+                    
+                    if (resultado != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                        linhaTremendo = quarteto.quantidadeTentativas;
+                        inicioTremor = GetTime();
+                    }
 
                     if (resultado == 1) {
 
@@ -703,7 +788,7 @@ int main(void) {
 
             DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
 
-            desenharQuarteto(&quarteto, entrada);
+            desenharQuarteto(&quarteto, entrada, linhaTremendo, deslocamentoX);
 
             if (quarteto.terminou) {
 
@@ -758,6 +843,11 @@ int main(void) {
                     strlen(entrada) == DUETO_TAMANHO) {
 
                     int resultadoValidacao = validar_palavra(entrada);
+                    
+                    if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                        linhaTremendo = dueto.quantidadeTentativas;
+                        inicioTremor = GetTime();
+                    }
 
                     if (resultadoValidacao == 1) {
 
@@ -807,7 +897,7 @@ int main(void) {
 
             DrawText("DUETO", 225, 35, 40, DARKGRAY);
 
-            desenharDueto(&dueto, entrada);
+            desenharDueto(&dueto, entrada, linhaTremendo, deslocamentoX);
 
             if (dueto.terminou) {
 
@@ -866,6 +956,11 @@ int main(void) {
 
                 int resultadoValidacao = validar_palavra(entrada);
 
+                if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                    linhaTremendo = jogo.quantidadeTentativas;
+                    inicioTremor = GetTime();
+                }
+
                 if (resultadoValidacao == 1) {
 
                     enviarTentativa(&jogo, entrada);
@@ -903,6 +998,8 @@ int main(void) {
                 iniciarJogo(&jogo, palavra);
 
                 entrada[0] = '\0';
+                inicioTremor = -1.0;
+                linhaTremendo = -1;
                 registroSalvo = 0;
 
             } else {
@@ -917,7 +1014,7 @@ int main(void) {
 
         DrawText("CERMO", 220, 40, 40, DARKGRAY);
 
-        desenharJogo(&jogo, entrada);
+        desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); // edição
 
         if (jogo.terminou) {
 
