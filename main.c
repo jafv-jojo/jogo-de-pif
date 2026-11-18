@@ -235,7 +235,7 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
         int inicioY = 100 + linhaTabuleiro * 290;
 
         DrawText(TextFormat("PALAVRA %d", tab + 1),
-                 inicioX + 45, inicioY - 25, 18, DARKGRAY);
+                 inicioX + 23, inicioY - 16, 18, DARKGRAY);
 
         for (int i = 0; i < QUARTETO_MAX_TENTATIVAS; i++) {
 
