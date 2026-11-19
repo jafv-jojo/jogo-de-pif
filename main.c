@@ -583,7 +583,7 @@ void desenharSequencia(Resultado *historico) {
 ██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██     ██████   ██████  ███████    ██     ██████  
 */
 
-void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float deslocamentoX) {
+void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float deslocamentoX, int cursorDueto) {
 
     int tamanhoCelula = 43;
     int espaco = 5;
@@ -636,6 +636,17 @@ void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float desloc
                 }
 
                 DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
+                if (i == dueto->quantidadeTentativas &&
+                    j == cursorDueto &&
+                    !dueto->acertou[tab] &&
+                    !dueto->terminou) {
+
+                    DrawRectangleLinesEx(
+                        (Rectangle){x, y, tamanhoCelula, tamanhoCelula},
+                        3,
+                        BLUE
+                    );
+                }
 
                 char letra[2] = {'\0', '\0'};
 
@@ -728,7 +739,6 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
                         y -= 6;
                     }
                 }
-
                 DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
 
                 char letra[2] = {'\0', '\0'};
@@ -958,6 +968,7 @@ int main(void) {
 
     char entrada[TAMANHO + 1] = "";
     int cursorTermo = 0;
+    int cursorDueto = 0;
     char mensagem[64] = "";
 
     iniciarJogo(&jogo, palavra);
@@ -1147,7 +1158,14 @@ int main(void) {
                     mouse, (Rectangle){150, 340, 300, 75})) {
 
                     telaAtual = TELA_DUETO;
-                    entrada[0] = '\0';
+
+                for (int i = 0; i < TAMANHO; i++) {
+                    entrada[i] = ' ';
+                }
+
+                entrada[TAMANHO] = '\0';
+                cursorDueto = 0;
+                mensagem[0] = '\0';
                 }
 
                 if (CheckCollisionPointRec(
@@ -1399,6 +1417,17 @@ int main(void) {
         if (telaAtual == TELA_DUETO) {
 
             if (!dueto.terminou) {
+                if (IsKeyPressed(KEY_LEFT)) {
+                    if (cursorDueto > 0) {
+                        cursorDueto--;
+                    }
+                }
+
+                if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_SPACE)) {
+                    if (cursorDueto < TAMANHO - 1) {
+                        cursorDueto++;
+                    }
+                }
 
                 int tecla = GetCharPressed();
 
@@ -1408,15 +1437,15 @@ int main(void) {
                         tecla = toupper(tecla);
                     }
 
-                    if (tecla >= 'A' && tecla <= 'Z' &&
-                        strlen(entrada) < DUETO_TAMANHO) {
+                    if (tecla >= 'A' && tecla <= 'Z') {
 
                         mensagem[0] = '\0';
 
-                        int tamanho = (int)strlen(entrada);
+                        entrada[cursorDueto] = (char)tecla;
 
-                        entrada[tamanho] = (char)tecla;
-                        entrada[tamanho + 1] = '\0';
+                        if (cursorDueto < DUETO_TAMANHO - 1) {
+                            cursorDueto++;
+                        }
                     }
 
                     tecla = GetCharPressed();
@@ -1424,27 +1453,37 @@ int main(void) {
 
                 char clicada = teclaClicada();
 
-                if (clicada >= 'A' && clicada <= 'Z' &&
-                    strlen(entrada) < DUETO_TAMANHO) {
+                if (clicada >= 'A' && clicada <= 'Z') {
 
                     mensagem[0] = '\0';
 
-                    int tamanho = (int)strlen(entrada);
+                    entrada[cursorDueto] = clicada;
 
-                    entrada[tamanho] = clicada;
-                    entrada[tamanho + 1] = '\0';
+                    if (cursorDueto < DUETO_TAMANHO - 1) {
+                        cursorDueto++;
+                    }
+                
                 }
                 if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
-                    int tamanho = (int)strlen(entrada);
-
-                    if (tamanho > 0) {
-                        entrada[tamanho - 1] = '\0';
+                    if (entrada[cursorDueto] == ' ' && cursorDueto > 0) {
+                        cursorDueto--;
                     }
+
+                    entrada[cursorDueto] = ' ';
                 }
 
-                if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
-                    strlen(entrada) == DUETO_TAMANHO) {
+            int palavraCompleta = 1;
+
+            for (int i = 0; i < DUETO_TAMANHO; i++) {
+                if (entrada[i] < 'A' || entrada[i] > 'Z') {
+                    palavraCompleta = 0;
+                    break;
+                }
+            }
+
+            if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
+                palavraCompleta) {
                     
                     int resultadoValidacao = validarPalavraTxt(entrada);
                     
@@ -1471,7 +1510,12 @@ int main(void) {
                                  "não foi possível consultar o dicionário");
                     }
 
-                    entrada[0] = '\0';
+                    for (int i = 0; i < DUETO_TAMANHO; i++) {
+                        entrada[i] = ' ';
+                    }
+
+                    entrada[DUETO_TAMANHO] = '\0';
+                    cursorDueto = 0;
                 }
             }
 
@@ -1484,11 +1528,16 @@ int main(void) {
                     for (int tentativa = 0; tentativa < 10; tentativa++) {
                         if (sortearPalavraTxt(nova2) &&
                             strcmp(nova1, nova2) != 0) {
-
                             iniciarDueto(&dueto, nova1, nova2);
                             inicioAnimResultado = -1.0;
                             confeteAtivo = 0;
-                            entrada[0] = '\0';
+
+                            for (int i = 0; i < DUETO_TAMANHO; i++) {
+                                entrada[i] = ' ';
+                            }
+
+                            entrada[DUETO_TAMANHO] = '\0';
+                            cursorDueto = 0;
 
                             break;
                         }
@@ -1502,7 +1551,7 @@ int main(void) {
 
             textoCentralizado("DUETO", 35, 40, DARKGRAY);
 
-            desenharDueto(&dueto, entrada, linhaTremendo, deslocamentoX);
+            desenharDueto(&dueto, entrada, linhaTremendo, deslocamentoX, cursorDueto);
 
             int teclado[26];
 
