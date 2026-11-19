@@ -758,7 +758,8 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
 ██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██      █████   ██████   ██████   ██████  
 */
 
-void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocamentoX) { 
+void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo,
+                  float deslocamentoX, int cursorTermo) {
 
     int inicioX = 150;
     int inicioY = 150;
@@ -801,6 +802,16 @@ void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocame
             }
 
             DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
+            if (i == jogo->quantidadeTentativas &&
+                j == cursorTermo &&
+                !jogo->terminou) {
+
+                DrawRectangleLinesEx(
+                    (Rectangle){x, y, tamanhoCelula, tamanhoCelula},
+                    3,
+                    BLUE
+                );
+            }
 
             char letra[2] = {'\0', '\0'};
 
@@ -946,9 +957,14 @@ int main(void) {
     Jogo jogo;
 
     char entrada[TAMANHO + 1] = "";
+    int cursorTermo = 0;
     char mensagem[64] = "";
 
     iniciarJogo(&jogo, palavra);
+        for (int i = 0; i < TAMANHO; i++) {
+            entrada[i] = ' ';
+        }
+        entrada[TAMANHO] = '\0';
 
     Dueto dueto;
 
@@ -1113,10 +1129,19 @@ int main(void) {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 Vector2 mouse = GetMousePosition();
 
-                if (CheckCollisionPointRec(
-                    mouse, (Rectangle){150, 240, 300, 75})) {
-                    telaAtual = TELA_TERMO;
+            if (CheckCollisionPointRec(
+                mouse, (Rectangle){150, 240, 300, 75})) {
+
+                telaAtual = TELA_TERMO;
+
+                for (int i = 0; i < TAMANHO; i++) {
+                    entrada[i] = ' ';
                 }
+
+                entrada[TAMANHO] = '\0';
+                cursorTermo = 0;
+                mensagem[0] = '\0';
+            }
 
                 if (CheckCollisionPointRec(
                     mouse, (Rectangle){150, 340, 300, 75})) {
@@ -1409,7 +1434,6 @@ int main(void) {
                     entrada[tamanho] = clicada;
                     entrada[tamanho + 1] = '\0';
                 }
-
                 if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
                     int tamanho = (int)strlen(entrada);
@@ -1529,53 +1553,71 @@ int main(void) {
         }
 
         if (!jogo.terminou) {
+            if (IsKeyPressed(KEY_LEFT)) {
+                if (cursorTermo > 0) {
+                cursorTermo--;
+            }
+        }
 
-            int tecla = GetCharPressed();
+        if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_SPACE)) {
+            if (cursorTermo < TAMANHO - 1) {
+                cursorTermo++;
+            }
+        }
 
-            while (tecla > 0) {
+        int tecla = GetCharPressed();
+        while (tecla > 0) {
 
-                if (tecla >= 'a' && tecla <= 'z') {
-                    tecla = toupper(tecla);
-                }
+            if (tecla >= 'a' && tecla <= 'z') {
+                tecla = toupper(tecla);
+            }
 
-                if (tecla >= 'A' && tecla <= 'Z' &&
-                    strlen(entrada) < TAMANHO) {
+            if (tecla >= 'A' && tecla <= 'Z') {
 
                     mensagem[0] = '\0';
 
-                    int tamanho = (int)strlen(entrada);
+                    entrada[cursorTermo] = (char)tecla;
 
-                    entrada[tamanho] = (char)tecla;
-                    entrada[tamanho + 1] = '\0';
+                    if (cursorTermo < TAMANHO - 1) {
+                        cursorTermo++;
+                    }
                 }
 
                 tecla = GetCharPressed();
             }
 
             char clicada = teclaClicada();
-
-            if (clicada >= 'A' && clicada <= 'Z' &&
-                strlen(entrada) < TAMANHO) {
+            if (clicada >= 'A' && clicada <= 'Z') {
 
                 mensagem[0] = '\0';
 
-                int tamanho = (int)strlen(entrada);
+                entrada[cursorTermo] = clicada;
 
-                entrada[tamanho] = clicada;
-                entrada[tamanho + 1] = '\0';
+                if (cursorTermo < TAMANHO - 1) {
+                    cursorTermo++;
+                }
             }
 
             if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
-                int tamanho = (int)strlen(entrada);
+                if (entrada[cursorTermo] == ' ' && cursorTermo > 0) {
+                    cursorTermo--;
+                }
 
-                if (tamanho > 0) {
-                    entrada[tamanho - 1] = '\0';
+                entrada[cursorTermo] = ' ';
+            }
+
+            int palavraCompleta = 1;
+
+            for (int i = 0; i < TAMANHO; i++) {
+                if (entrada[i] < 'A' || entrada[i] > 'Z') {
+                    palavraCompleta = 0;
+                    break;
                 }
             }
 
             if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
-                strlen(entrada) == TAMANHO) {
+                palavraCompleta) {
                 
                 
                 int resultadoValidacao = validarPalavraTxt(entrada);
@@ -1603,7 +1645,12 @@ int main(void) {
                              "não foi possível consultar o dicionário");
                 }
 
-                entrada[0] = '\0';
+                for (int i = 0; i < TAMANHO; i++) {
+                    entrada[i] = ' ';
+                }
+
+                entrada[TAMANHO] = '\0';
+                cursorTermo = 0;
             }
 
         } else if (!registroSalvo) {
@@ -1646,7 +1693,7 @@ int main(void) {
 
         textoCentralizado("CERMO", 40, 40, DARKGRAY);
 
-        desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); 
+        desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX, cursorTermo);
 
         int teclado[26];
 
