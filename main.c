@@ -579,8 +579,8 @@ int main(void) {
     // variaveis sfx
     void InitAudioDevice();
     
-    Sound buzzer = LoadSound("sons/buzzer.mp3");
-    Sound resp_ok = LoadSound("sons/resp_ok.mp3");
+    Sound buzzer = LoadSound("sons/sfx/buzzer.mp3");
+    Sound resp_ok = LoadSound("sons/sfx/resp_ok.mp3");
     SetSoundVolume(buzzer, 0.5f);
     SetSoundVolume(resp_ok, 0.5f);    
 
