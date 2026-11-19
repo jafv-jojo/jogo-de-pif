@@ -575,6 +575,14 @@ int main(void) {
     int registroSalvo = 0;
 
     InitWindow(LARGURA, ALTURA, "Cermo");
+    
+    // variaveis sfx
+    void InitAudioDevice();
+    void SetMasterVolume(0.5f);
+    Sound buzzer = LoadSound("sons/buzzer.mp3");
+    Sound resp_ok = LoadSound("sons/resp_ok.mp3");
+    SetSoundVolume(buzzer, 0.5f);
+    SetSoundVolume(resp_ok, 0.5f);    
 
     SetExitKey(KEY_NULL);
     SetTargetFPS(60);
@@ -772,16 +780,17 @@ int main(void) {
 
                 if (IsKeyPressed(KEY_ENTER) &&
                     strlen(entrada) == QUARTETO_TAMANHO) {
-
+                    
                     int resultado = validar_palavra(entrada);
                     
                     if (resultado != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                        PlaySound(buzzer);
                         linhaTremendo = quarteto.quantidadeTentativas;
                         inicioTremor = GetTime();
                     }
 
                     if (resultado == 1) {
-
+                        PlaySound(resp_ok);
                         enviarTentativaQuarteto(&quarteto, entrada);
                         mensagem[0] = '\0';
 
@@ -859,16 +868,17 @@ int main(void) {
 
                 if (IsKeyPressed(KEY_ENTER) &&
                     strlen(entrada) == DUETO_TAMANHO) {
-
+                    
                     int resultadoValidacao = validar_palavra(entrada);
                     
                     if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                        PlaySound(buzzer);
                         linhaTremendo = dueto.quantidadeTentativas;
                         inicioTremor = GetTime();
                     }
 
                     if (resultadoValidacao == 1) {
-
+                        PlaySound(resp_ok);
                         enviarTentativaDueto(&dueto, entrada);
                         mensagem[0] = '\0';
 
@@ -969,16 +979,18 @@ int main(void) {
 
             if (IsKeyPressed(KEY_ENTER) &&
                 strlen(entrada) == TAMANHO) {
-
+                
+                
                 int resultadoValidacao = validar_palavra(entrada);
 
                 if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
+                    PlaySound(buzzer);
                     linhaTremendo = jogo.quantidadeTentativas;
                     inicioTremor = GetTime();
                 }
 
                 if (resultadoValidacao == 1) {
-
+                    PlaySound(resp_ok);
                     enviarTentativa(&jogo, entrada);
                     mensagem[0] = '\0';
 
@@ -1055,6 +1067,11 @@ int main(void) {
     }
 
     CloseWindow();
+
+    UnloadSound(buzzer); 
+    UnloadSound(resp_ok);
+
+    CloseAudioDevice();
 
     finalizarAPI();
 
