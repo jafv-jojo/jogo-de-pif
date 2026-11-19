@@ -1,6 +1,12 @@
-# Cermo
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/09fcfe1f-e6be-4d18-acb9-938f552be7c4" alt="Logo Cermo" width="600">
+</p>
 
-Projeto final da disciplina de Programação Imperativa e Funcional, desenvolvido em linguagem C utilizando a biblioteca Raylib. O jogo é inspirado no Termo.
+<p align="center">
+  <img src="https://img.shields.io/badge/language-C-00599C?logo=c&logoColor=white" alt="C">
+  <img src="https://img.shields.io/badge/raylib-5.5-black" alt="Raylib">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey" alt="Windows e Linux">
+</p>
 
 ## Sobre o jogo
 
