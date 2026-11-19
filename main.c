@@ -13,7 +13,7 @@
 #include "quarteto.h"
 
 #define LARGURA 600
-#define ALTURA 700
+#define ALTURA 800
 
 #define TELA_MENU 0
 #define TELA_TERMO 1
@@ -26,8 +26,13 @@ typedef struct {
     char letra;
 } AcentoTxt;
 
-char **palavrasTxt = NULL;
-int totalPalavrasTxt = 0;
+typedef struct {
+    char **palavras;
+    int total;
+} ListaPalavras;
+
+ListaPalavras respostas = {NULL, 0};
+ListaPalavras validas = {NULL, 0};
 
 int converterLinhaTxt(const char *linha, char destino[TAMANHO + 1]) {
 
@@ -92,7 +97,7 @@ int converterLinhaTxt(const char *linha, char destino[TAMANHO + 1]) {
     return 1;
 }
 
-int carregarPalavrasTxt(const char arquivo[]) {
+int carregarPalavrasTxt(const char arquivo[], ListaPalavras *lista) {
 
     FILE *f = fopen(arquivo, "r");
 
@@ -110,43 +115,43 @@ int carregarPalavrasTxt(const char arquivo[]) {
             continue;
         }
 
-        char **novaLista = realloc(palavrasTxt, (totalPalavrasTxt + 1) * sizeof(char *));
+        char **novaLista = realloc(lista->palavras, (lista->total + 1) * sizeof(char *));
 
         if (novaLista == NULL) {
             break;
         }
 
-        palavrasTxt = novaLista;
-        palavrasTxt[totalPalavrasTxt] = malloc(TAMANHO + 1);
+        lista->palavras = novaLista;
+        lista->palavras[lista->total] = malloc(TAMANHO + 1);
 
-        if (palavrasTxt[totalPalavrasTxt] == NULL) {
+        if (lista->palavras[lista->total] == NULL) {
             break;
         }
 
-        strcpy(palavrasTxt[totalPalavrasTxt], palavra);
-        totalPalavrasTxt++;
+        strcpy(lista->palavras[lista->total], palavra);
+        lista->total++;
     }
 
     fclose(f);
 
-    return totalPalavrasTxt;
+    return lista->total;
 }
 
 int sortearPalavraTxt(char destino[]) {
 
-    if (totalPalavrasTxt == 0) {
+    if (respostas.total == 0) {
         return 0;
     }
 
-    strcpy(destino, palavrasTxt[rand() % totalPalavrasTxt]);
+    strcpy(destino, respostas.palavras[rand() % respostas.total]);
 
     return 1;
 }
 
-int validarPalavraTxt(const char tentativa[]) {
+int estaNaLista(ListaPalavras *lista, const char palavra[]) {
 
-    for (int i = 0; i < totalPalavrasTxt; i++) {
-        if (strcmp(palavrasTxt[i], tentativa) == 0) {
+    for (int i = 0; i < lista->total; i++) {
+        if (strcmp(lista->palavras[i], palavra) == 0) {
             return 1;
         }
     }
@@ -154,16 +159,131 @@ int validarPalavraTxt(const char tentativa[]) {
     return 0;
 }
 
-void liberarPalavrasTxt(void) {
+int validarPalavraTxt(const char tentativa[]) {
 
-    for (int i = 0; i < totalPalavrasTxt; i++) {
-        free(palavrasTxt[i]);
+    if (estaNaLista(&respostas, tentativa) || estaNaLista(&validas, tentativa)) {
+        return 1;
     }
 
-    free(palavrasTxt);
+    return 0;
+}
 
-    palavrasTxt = NULL;
-    totalPalavrasTxt = 0;
+void liberarLista(ListaPalavras *lista) {
+
+    for (int i = 0; i < lista->total; i++) {
+        free(lista->palavras[i]);
+    }
+
+    free(lista->palavras);
+
+    lista->palavras = NULL;
+    lista->total = 0;
+}
+
+
+const char *linha1 = "QWERTYUIOP";
+const char *linha2 = "ASDFGHJKL";
+const char *linha3 = "ZXCVBNM";
+
+void limparTeclado(int teclado[26]) {
+
+    for (int i = 0; i < 26; i++) {
+        teclado[i] = -1;
+    }
+}
+
+void marcarTeclado(int teclado[26], char tentativa[], int cores[]) {
+
+    for (int j = 0; j < TAMANHO; j++) {
+
+        int posicao = tentativa[j] - 'A';
+
+        if (cores[j] > teclado[posicao]) {
+            teclado[posicao] = cores[j];
+        }
+    }
+}
+
+void desenharLetra(char letra, int x, int y, int teclado[26]) {
+
+    int estado = teclado[letra - 'A'];
+
+    Color cor = LIGHTGRAY;
+    Color corTexto = DARKGRAY;
+
+    if (estado == VERDE) {
+        cor = GREEN;
+        corTexto = WHITE;
+    } else if (estado == AMARELO) {
+        cor = GOLD;
+        corTexto = WHITE;
+    } else if (estado == CINZA) {
+        cor = DARKGRAY;
+        corTexto = WHITE;
+    }
+
+    char texto[2] = {letra, '\0'};
+
+    DrawRectangle(x, y, 48, 34, cor);
+    DrawText(texto, x + (48 - MeasureText(texto, 20)) / 2, y + 7, 20, corTexto);
+}
+
+void desenharTeclado(int teclado[26]) {
+
+    for (int i = 0; i < 10; i++) {
+        desenharLetra(linha1[i], 33 + i * 54, 685, teclado);
+    }
+
+    for (int i = 0; i < 9; i++) {
+        desenharLetra(linha2[i], 60 + i * 54, 724, teclado);
+    }
+
+    DrawRectangle(33, 763, 75, 34, LIGHTGRAY);
+    DrawText("ENTER", 33 + (75 - MeasureText("ENTER", 16)) / 2, 772, 16, DARKGRAY);
+
+    for (int i = 0; i < 7; i++) {
+        desenharLetra(linha3[i], 114 + i * 54, 763, teclado);
+    }
+
+    DrawRectangle(492, 763, 75, 34, LIGHTGRAY);
+    DrawText("APAGAR", 492 + (75 - MeasureText("APAGAR", 16)) / 2, 772, 16, DARKGRAY);
+}
+
+char teclaClicada(void) {
+
+    if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        return 0;
+    }
+
+    Vector2 mouse = GetMousePosition();
+
+    for (int i = 0; i < 10; i++) {
+        if (CheckCollisionPointRec(mouse, (Rectangle){33 + i * 54, 685, 48, 34})) {
+            return linha1[i];
+        }
+    }
+
+    for (int i = 0; i < 9; i++) {
+        if (CheckCollisionPointRec(mouse, (Rectangle){60 + i * 54, 724, 48, 34})) {
+            return linha2[i];
+        }
+    }
+
+    for (int i = 0; i < 7; i++) {
+        if (CheckCollisionPointRec(mouse, (Rectangle){114 + i * 54, 763, 48, 34})) {
+            return linha3[i];
+        }
+    }
+
+    if (CheckCollisionPointRec(mouse, (Rectangle){33, 763, 75, 34})) {
+        return '\n';
+    }
+
+    if (CheckCollisionPointRec(mouse, (Rectangle){492, 763, 75, 34})) {
+        return '\b';
+    }
+
+    return 0;
 }
 
 /*
@@ -175,9 +295,10 @@ void liberarPalavrasTxt(void) {
 */
 void desenharMenu(void) {
 
-    DrawText("CERMO",
-         (600 - MeasureText("CERMO", 40)) / 2,
-         90, 40, DARKGRAY);
+    int xTitulo = (600 - MeasureText("CERMO", 40)) / 2;
+
+    DrawText("C", xTitulo, 90, 40, BLUE);
+    DrawText("ERMO", xTitulo + MeasureText("C", 40) + 4, 90, 40, DARKGRAY);
 
     DrawText("Escolha o modo de jogo", 155, 155, 22, GRAY);
 
@@ -618,10 +739,14 @@ int main(void) {
 
     srand((unsigned int)time(NULL));
 
-    if (carregarPalavrasTxt("palavras_5_letras.txt") == 0) {
+    if (carregarPalavrasTxt("palavras_5_letras.txt", &respostas) == 0) {
         printf("Erro ao carregar palavras_5_letras.txt.\n");
         finalizarAPI();
         return 1;
+    }
+
+    if (carregarPalavrasTxt("palavras_validas.txt", &validas) == 0) {
+        printf("Aviso: palavras_validas.txt nao encontrado, validando so com palavras_5_letras.txt.\n");
     }
 
     char palavra[TAMANHO + 1];
@@ -924,7 +1049,20 @@ int main(void) {
                     tecla = GetCharPressed();
                 }
 
-                if (IsKeyPressed(KEY_BACKSPACE)) {
+                char clicada = teclaClicada();
+
+                if (clicada >= 'A' && clicada <= 'Z' &&
+                    strlen(entrada) < QUARTETO_TAMANHO) {
+
+                    mensagem[0] = '\0';
+
+                    int tamanho = (int)strlen(entrada);
+
+                    entrada[tamanho] = clicada;
+                    entrada[tamanho + 1] = '\0';
+                }
+
+                if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
                     int tamanho = (int)strlen(entrada);
 
@@ -933,7 +1071,7 @@ int main(void) {
                     }
                 }
 
-                if (IsKeyPressed(KEY_ENTER) &&
+                if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
                     strlen(entrada) == QUARTETO_TAMANHO) {
                     
                     int resultado = validarPalavraTxt(entrada);
@@ -971,6 +1109,20 @@ int main(void) {
             DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
 
             desenharQuarteto(&quarteto, entrada, linhaTremendo, deslocamentoX);
+
+            int teclado[26];
+
+            limparTeclado(teclado);
+
+            for (int tab = 0; tab < QUARTETO_QUANTIDADE_PALAVRAS; tab++) {
+                for (int i = 0; i < quarteto.quantidadeTentativas; i++) {
+                    if (!quarteto.acertou[tab] || i < quarteto.tentativaAcerto[tab]) {
+                        marcarTeclado(teclado, quarteto.tentativas[i], quarteto.cores[tab][i]);
+                    }
+                }
+            }
+
+            desenharTeclado(teclado);
 
             if (quarteto.terminou) {
 
@@ -1012,7 +1164,20 @@ int main(void) {
                     tecla = GetCharPressed();
                 }
 
-                if (IsKeyPressed(KEY_BACKSPACE)) {
+                char clicada = teclaClicada();
+
+                if (clicada >= 'A' && clicada <= 'Z' &&
+                    strlen(entrada) < DUETO_TAMANHO) {
+
+                    mensagem[0] = '\0';
+
+                    int tamanho = (int)strlen(entrada);
+
+                    entrada[tamanho] = clicada;
+                    entrada[tamanho + 1] = '\0';
+                }
+
+                if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
                     int tamanho = (int)strlen(entrada);
 
@@ -1021,7 +1186,7 @@ int main(void) {
                     }
                 }
 
-                if (IsKeyPressed(KEY_ENTER) &&
+                if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
                     strlen(entrada) == DUETO_TAMANHO) {
                     
                     int resultadoValidacao = validarPalavraTxt(entrada);
@@ -1080,6 +1245,20 @@ int main(void) {
 
             desenharDueto(&dueto, entrada, linhaTremendo, deslocamentoX);
 
+            int teclado[26];
+
+            limparTeclado(teclado);
+
+            for (int tab = 0; tab < DUETO_QUANTIDADE_PALAVRAS; tab++) {
+                for (int i = 0; i < dueto.quantidadeTentativas; i++) {
+                    if (!dueto.acertou[tab] || i < dueto.tentativaAcerto[tab]) {
+                        marcarTeclado(teclado, dueto.tentativas[i], dueto.cores[tab][i]);
+                    }
+                }
+            }
+
+            desenharTeclado(teclado);
+
             if (dueto.terminou) {
 
                 desenharResultadoDueto(&dueto, deslocamento_resultadoY);
@@ -1123,7 +1302,20 @@ int main(void) {
                 tecla = GetCharPressed();
             }
 
-            if (IsKeyPressed(KEY_BACKSPACE)) {
+            char clicada = teclaClicada();
+
+            if (clicada >= 'A' && clicada <= 'Z' &&
+                strlen(entrada) < TAMANHO) {
+
+                mensagem[0] = '\0';
+
+                int tamanho = (int)strlen(entrada);
+
+                entrada[tamanho] = clicada;
+                entrada[tamanho + 1] = '\0';
+            }
+
+            if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
                 int tamanho = (int)strlen(entrada);
 
@@ -1132,7 +1324,7 @@ int main(void) {
                 }
             }
 
-            if (IsKeyPressed(KEY_ENTER) &&
+            if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
                 strlen(entrada) == TAMANHO) {
                 
                 
@@ -1204,6 +1396,16 @@ int main(void) {
 
         desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); 
 
+        int teclado[26];
+
+        limparTeclado(teclado);
+
+        for (int i = 0; i < jogo.quantidadeTentativas; i++) {
+            marcarTeclado(teclado, jogo.tentativas[i], jogo.cores[i]);
+        }
+
+        desenharTeclado(teclado);
+
         if (jogo.terminou) {
 
             desenharResultadoTermo(&jogo, deslocamento_resultadoY);
@@ -1232,7 +1434,8 @@ int main(void) {
 
     liberarRanking(ranking);
 
-    liberarPalavrasTxt();
+    liberarLista(&respostas);
+    liberarLista(&validas);
 
     return 0;
 }
