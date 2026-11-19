@@ -683,7 +683,7 @@ void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float desloc
 ██████  ███████ ███████ ███████ ██   ████ ██   ██ ██   ██ ██   ██      ██████   ██████  ██   ██ ██   ██    ██    ███████    ██     ██████  
 */
 
-void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, float deslocamentoX) {
+void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, float deslocamentoX, int cursorQuarteto) {
 
     int tamanhoCelula = 27;
     int espaco = 3;
@@ -740,6 +740,18 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
                     }
                 }
                 DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
+
+                if (i == quarteto->quantidadeTentativas &&
+                    j == cursorQuarteto &&
+                    !quarteto->acertou[tab] &&
+                    !quarteto->terminou) {
+
+                    DrawRectangleLinesEx(
+                        (Rectangle){x, y, tamanhoCelula, tamanhoCelula},
+                        3,
+                        BLUE
+                    );
+                }
 
                 char letra[2] = {'\0', '\0'};
 
@@ -969,6 +981,7 @@ int main(void) {
     char entrada[TAMANHO + 1] = "";
     int cursorTermo = 0;
     int cursorDueto = 0;
+    int cursorQuarteto = 0;
     char mensagem[64] = "";
 
     iniciarJogo(&jogo, palavra);
@@ -1172,7 +1185,13 @@ int main(void) {
                     mouse, (Rectangle){150, 440, 300, 75})) {
 
                     telaAtual = TELA_QUARTETO;
-                    entrada[0] = '\0';
+
+                    for (int i = 0; i < QUARTETO_TAMANHO; i++) {
+                        entrada[i] = ' ';
+                    }
+
+                    entrada[QUARTETO_TAMANHO] = '\0';
+                    cursorQuarteto = 0;
                     mensagem[0] = '\0';
                 }
 
@@ -1276,7 +1295,13 @@ int main(void) {
                     
                     inicioAnimResultado = -1.0;
                     confeteAtivo = 0;
-                    entrada[0] = '\0';
+
+                    for (int i = 0; i < QUARTETO_TAMANHO; i++) {
+                        entrada[i] = ' ';
+                    }
+
+                    entrada[QUARTETO_TAMANHO] = '\0';
+                    cursorQuarteto = 0;
                     mensagem[0] = '\0';
 
                 } else {
@@ -1286,6 +1311,18 @@ int main(void) {
 
             if (!quarteto.terminou) {
 
+                if (IsKeyPressed(KEY_LEFT)) {
+                    if (cursorQuarteto > 0) {
+                        cursorQuarteto--;
+                    }
+                }
+
+                if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_SPACE)) {
+                    if (cursorQuarteto < QUARTETO_TAMANHO - 1) {
+                        cursorQuarteto++;
+                    }
+                }
+
                 int tecla = GetCharPressed();
 
                 while (tecla > 0) {
@@ -1294,15 +1331,16 @@ int main(void) {
                         tecla = toupper(tecla);
                     }
 
-                    if (tecla >= 'A' && tecla <= 'Z' &&
-                        strlen(entrada) < QUARTETO_TAMANHO) {
+                    if (tecla >= 'A' && tecla <= 'Z') {
 
                         mensagem[0] = '\0';
 
-                        int tamanho = (int)strlen(entrada);
+                        entrada[cursorQuarteto] = (char)tecla;
+                        entrada[QUARTETO_TAMANHO] = '\0';
 
-                        entrada[tamanho] = (char)tecla;
-                        entrada[tamanho + 1] = '\0';
+                        if (cursorQuarteto < QUARTETO_TAMANHO - 1) {
+                            cursorQuarteto++;
+                        }
                     }
 
                     tecla = GetCharPressed();
@@ -1310,28 +1348,38 @@ int main(void) {
 
                 char clicada = teclaClicada();
 
-                if (clicada >= 'A' && clicada <= 'Z' &&
-                    strlen(entrada) < QUARTETO_TAMANHO) {
+                if (clicada >= 'A' && clicada <= 'Z') {
 
                     mensagem[0] = '\0';
 
-                    int tamanho = (int)strlen(entrada);
+                    entrada[cursorQuarteto] = clicada;
+                    entrada[QUARTETO_TAMANHO] = '\0';
 
-                    entrada[tamanho] = clicada;
-                    entrada[tamanho + 1] = '\0';
+                    if (cursorQuarteto < QUARTETO_TAMANHO - 1) {
+                        cursorQuarteto++;
+                    }
                 }
 
                 if (IsKeyPressed(KEY_BACKSPACE) || clicada == '\b') {
 
-                    int tamanho = (int)strlen(entrada);
+                    if (entrada[cursorQuarteto] == ' ' && cursorQuarteto > 0) {
+                        cursorQuarteto--;
+                    }
 
-                    if (tamanho > 0) {
-                        entrada[tamanho - 1] = '\0';
+                    entrada[cursorQuarteto] = ' ';
+                }
+
+                int palavraCompleta = 1;
+
+                for (int i = 0; i < QUARTETO_TAMANHO; i++) {
+                    if (entrada[i] < 'A' || entrada[i] > 'Z') {
+                        palavraCompleta = 0;
+                        break;
                     }
                 }
 
-                if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
-                    strlen(entrada) == QUARTETO_TAMANHO) {
+if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
+    palavraCompleta) {
                     
                     int resultado = validarPalavraTxt(entrada);
                     
@@ -1358,7 +1406,12 @@ int main(void) {
                                  "Erro ao consultar o dicionario");
                     }
 
-                    entrada[0] = '\0';
+                    for (int i = 0; i < QUARTETO_TAMANHO; i++) {
+                        entrada[i] = ' ';
+                    }
+
+                    entrada[QUARTETO_TAMANHO] = '\0';
+                    cursorQuarteto = 0;
                 }
             }
 
@@ -1368,7 +1421,7 @@ int main(void) {
 
             textoCentralizado("QUARTETO", 25, 35, DARKGRAY);
 
-            desenharQuarteto(&quarteto, entrada, linhaTremendo, deslocamentoX);
+            desenharQuarteto(&quarteto, entrada, linhaTremendo, deslocamentoX, cursorQuarteto);
 
             int teclado[26];
 
