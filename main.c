@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <ctype.h>
 #include <math.h> 
 
@@ -18,6 +20,151 @@
 #define TELA_DUETO 2
 #define TELA_QUARTETO 3
 #define TELA_SEQUENCIA 4
+
+typedef struct {
+    const char *utf8;
+    char letra;
+} AcentoTxt;
+
+char **palavrasTxt = NULL;
+int totalPalavrasTxt = 0;
+
+int converterLinhaTxt(const char *linha, char destino[TAMANHO + 1]) {
+
+    AcentoTxt acentos[] = {
+        {"á", 'A'}, {"à", 'A'}, {"â", 'A'}, {"ã", 'A'},
+        {"Á", 'A'}, {"À", 'A'}, {"Â", 'A'}, {"Ã", 'A'},
+        {"é", 'E'}, {"è", 'E'}, {"ê", 'E'},
+        {"É", 'E'}, {"È", 'E'}, {"Ê", 'E'},
+        {"í", 'I'}, {"ì", 'I'}, {"î", 'I'},
+        {"Í", 'I'}, {"Ì", 'I'}, {"Î", 'I'},
+        {"ó", 'O'}, {"ò", 'O'}, {"ô", 'O'}, {"õ", 'O'},
+        {"Ó", 'O'}, {"Ò", 'O'}, {"Ô", 'O'}, {"Õ", 'O'},
+        {"ú", 'U'}, {"ù", 'U'}, {"û", 'U'}, {"ü", 'U'},
+        {"Ú", 'U'}, {"Ù", 'U'}, {"Û", 'U'}, {"Ü", 'U'},
+        {"ç", 'C'}, {"Ç", 'C'}
+    };
+
+    int totalAcentos = (int)(sizeof(acentos) / sizeof(acentos[0]));
+    int posicao = 0;
+
+    while (*linha != '\0' && *linha != '\r' && *linha != '\n') {
+
+        unsigned char atual = (unsigned char)*linha;
+        char letra = '\0';
+        int bytes = 1;
+
+        if (atual >= 'a' && atual <= 'z') {
+            letra = (char)(atual - 'a' + 'A');
+        } else if (atual >= 'A' && atual <= 'Z') {
+            letra = (char)atual;
+        } else {
+            for (int i = 0; i < totalAcentos; i++) {
+                int tamanhoAcento = (int)strlen(acentos[i].utf8);
+
+                if (strncmp(linha, acentos[i].utf8, tamanhoAcento) == 0) {
+                    letra = acentos[i].letra;
+                    bytes = tamanhoAcento;
+                    break;
+                }
+            }
+
+            if (letra == '\0') {
+                return 0;
+            }
+        }
+
+        if (posicao >= TAMANHO) {
+            return 0;
+        }
+
+        destino[posicao] = letra;
+        posicao++;
+        linha += bytes;
+    }
+
+    if (posicao != TAMANHO) {
+        return 0;
+    }
+
+    destino[posicao] = '\0';
+
+    return 1;
+}
+
+int carregarPalavrasTxt(const char arquivo[]) {
+
+    FILE *f = fopen(arquivo, "r");
+
+    if (f == NULL) {
+        return 0;
+    }
+
+    char linha[64];
+
+    while (fgets(linha, sizeof(linha), f) != NULL) {
+
+        char palavra[TAMANHO + 1];
+
+        if (!converterLinhaTxt(linha, palavra)) {
+            continue;
+        }
+
+        char **novaLista = realloc(palavrasTxt, (totalPalavrasTxt + 1) * sizeof(char *));
+
+        if (novaLista == NULL) {
+            break;
+        }
+
+        palavrasTxt = novaLista;
+        palavrasTxt[totalPalavrasTxt] = malloc(TAMANHO + 1);
+
+        if (palavrasTxt[totalPalavrasTxt] == NULL) {
+            break;
+        }
+
+        strcpy(palavrasTxt[totalPalavrasTxt], palavra);
+        totalPalavrasTxt++;
+    }
+
+    fclose(f);
+
+    return totalPalavrasTxt;
+}
+
+int sortearPalavraTxt(char destino[]) {
+
+    if (totalPalavrasTxt == 0) {
+        return 0;
+    }
+
+    strcpy(destino, palavrasTxt[rand() % totalPalavrasTxt]);
+
+    return 1;
+}
+
+int validarPalavraTxt(const char tentativa[]) {
+
+    for (int i = 0; i < totalPalavrasTxt; i++) {
+        if (strcmp(palavrasTxt[i], tentativa) == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void liberarPalavrasTxt(void) {
+
+    for (int i = 0; i < totalPalavrasTxt; i++) {
+        free(palavrasTxt[i]);
+    }
+
+    free(palavrasTxt);
+
+    palavrasTxt = NULL;
+    totalPalavrasTxt = 0;
+}
 
 /*
 ██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████      ███    ███ ███████ ███    ██ ██    ██ 
@@ -469,9 +616,17 @@ int main(void) {
         return 1;
     }
 
+    srand((unsigned int)time(NULL));
+
+    if (carregarPalavrasTxt("palavras_5_letras.txt") == 0) {
+        printf("Erro ao carregar palavras_5_letras.txt.\n");
+        finalizarAPI();
+        return 1;
+    }
+
     char palavra[TAMANHO + 1];
 
-    if (!escolherPalavra(palavra)) {
+    if (!sortearPalavraTxt(palavra)) {
         printf("Erro ao obter palavra da API.\n");
         finalizarAPI();
         return 1;
@@ -493,7 +648,7 @@ int main(void) {
     char palavraDueto1[DUETO_TAMANHO + 1];
     char palavraDueto2[DUETO_TAMANHO + 1];
 
-    if (!escolherPalavra(palavraDueto1)) {
+    if (!sortearPalavraTxt(palavraDueto1)) {
         printf("Erro ao obter a primeira palavra do Dueto.\n");
         finalizarAPI();
         liberarRanking(ranking);
@@ -504,7 +659,7 @@ int main(void) {
 
     for (int tentativa = 0; tentativa < 10; tentativa++) {
 
-        if (escolherPalavra(palavraDueto2) &&
+        if (sortearPalavraTxt(palavraDueto2) &&
             strcmp(palavraDueto1, palavraDueto2) != 0) {
 
             palavraDiferente = 1;
@@ -536,7 +691,7 @@ int main(void) {
 
         tentativasBusca++;
 
-        if (!escolherPalavra(candidata)) {
+        if (!sortearPalavraTxt(candidata)) {
             continue;
         }
 
@@ -708,7 +863,7 @@ int main(void) {
 
                     tentativas++;
 
-                    if (!escolherPalavra(candidata)) {
+                    if (!sortearPalavraTxt(candidata)) {
                         continue;
                     }
 
@@ -781,7 +936,7 @@ int main(void) {
                 if (IsKeyPressed(KEY_ENTER) &&
                     strlen(entrada) == QUARTETO_TAMANHO) {
                     
-                    int resultado = validar_palavra(entrada);
+                    int resultado = validarPalavraTxt(entrada);
                     
                     if (resultado != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
                         PlaySound(buzzer);
@@ -869,7 +1024,7 @@ int main(void) {
                 if (IsKeyPressed(KEY_ENTER) &&
                     strlen(entrada) == DUETO_TAMANHO) {
                     
-                    int resultadoValidacao = validar_palavra(entrada);
+                    int resultadoValidacao = validarPalavraTxt(entrada);
                     
                     if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
                         PlaySound(buzzer);
@@ -902,9 +1057,9 @@ int main(void) {
                 char nova1[DUETO_TAMANHO + 1];
                 char nova2[DUETO_TAMANHO + 1];
 
-                if (escolherPalavra(nova1)) {
+                if (sortearPalavraTxt(nova1)) {
                     for (int tentativa = 0; tentativa < 10; tentativa++) {
-                        if (escolherPalavra(nova2) &&
+                        if (sortearPalavraTxt(nova2) &&
                             strcmp(nova1, nova2) != 0) {
 
                             iniciarDueto(&dueto, nova1, nova2);
@@ -981,7 +1136,7 @@ int main(void) {
                 strlen(entrada) == TAMANHO) {
                 
                 
-                int resultadoValidacao = validar_palavra(entrada);
+                int resultadoValidacao = validarPalavraTxt(entrada);
 
                 if (resultadoValidacao != 1) { //animacao de quando a tentativa é inválida ou quando dá erro na consulta do dicionário
                     PlaySound(buzzer);
@@ -1021,7 +1176,7 @@ int main(void) {
 
         if (jogo.terminou && IsKeyPressed(KEY_R)) {
 
-            if (escolherPalavra(palavra)) {
+            if (sortearPalavraTxt(palavra)) {
                 iniciarJogo(&jogo, palavra);
 
                 entrada[0] = '\0';
@@ -1076,6 +1231,8 @@ int main(void) {
     finalizarAPI();
 
     liberarRanking(ranking);
+
+    liberarPalavrasTxt();
 
     return 0;
 }
