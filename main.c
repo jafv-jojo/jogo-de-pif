@@ -181,6 +181,46 @@ void liberarLista(ListaPalavras *lista) {
 }
 
 
+
+RenderTexture2D tela;
+
+void comecarDesenho(void) {
+    BeginTextureMode(tela);
+}
+
+void terminarDesenho(void) {
+
+    EndTextureMode();
+
+    float escalaX = (float)GetScreenWidth() / LARGURA;
+    float escalaY = (float)GetScreenHeight() / ALTURA;
+    float escala = escalaX;
+
+    if (escalaY < escalaX) {
+        escala = escalaY;
+    }
+
+    float larguraFinal = LARGURA * escala;
+    float alturaFinal = ALTURA * escala;
+
+    float sobraX = (GetScreenWidth() - larguraFinal) / 2;
+    float sobraY = (GetScreenHeight() - alturaFinal) / 2;
+
+    BeginDrawing();
+
+    ClearBackground(BLACK);
+
+    DrawTexturePro(tela.texture,
+                   (Rectangle){0, 0, LARGURA, -ALTURA},
+                   (Rectangle){sobraX, sobraY, larguraFinal, alturaFinal},
+                   (Vector2){0, 0}, 0, WHITE);
+
+    EndDrawing();
+
+    SetMouseOffset((int)-sobraX, (int)-sobraY);
+    SetMouseScale(1 / escala, 1 / escala);
+}
+
 const char *linha1 = "QWERTYUIOP";
 const char *linha2 = "ASDFGHJKL";
 const char *linha3 = "ZXCVBNM";
@@ -321,6 +361,20 @@ void desenharMenu(void) {
     DrawText("PARTIDAS",
              150 + (300 - MeasureText("PARTIDAS", 25)) / 2,
              565, 25, WHITE);
+
+    DrawRectangle(150, 640, 300, 75, GRAY);
+
+    if (IsWindowState(FLAG_BORDERLESS_WINDOWED_MODE)) {
+        DrawText("SAIR DA TELA CHEIA",
+                 150 + (300 - MeasureText("SAIR DA TELA CHEIA", 25)) / 2,
+                 665, 25, WHITE);
+    } else {
+        DrawText("TELA CHEIA",
+                 150 + (300 - MeasureText("TELA CHEIA", 25)) / 2,
+                 665, 25, WHITE);
+    }
+
+    DrawText("F11 - tela cheia", 220, 740, 20, GRAY);
 }
 
 void desenharSequencia(Resultado *historico) {
@@ -855,6 +909,9 @@ int main(void) {
     int registroSalvo = 0;
 
     InitWindow(LARGURA, ALTURA, "Cermo");
+
+    tela = LoadRenderTexture(LARGURA, ALTURA);
+    SetTextureFilter(tela.texture, TEXTURE_FILTER_BILINEAR);
     
     // variaveis sfx
     InitAudioDevice();
@@ -868,6 +925,10 @@ int main(void) {
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+
+        if (IsKeyPressed(KEY_F11)) {
+            ToggleBorderlessWindowed();
+        }
         float deslocamentoX = 0.0f; // 584 - 603: calculos pra animacao de tremer linha
 
         if (inicioTremor >= 0.0) {
@@ -933,15 +994,19 @@ int main(void) {
                 if (CheckCollisionPointRec(mouse, (Rectangle){150, 540, 300, 75})) {
                     telaAtual = TELA_SEQUENCIA;
                 }
+
+                if (CheckCollisionPointRec(mouse, (Rectangle){150, 640, 300, 75})) {
+                    ToggleBorderlessWindowed();
+                }
             }
 
-            BeginDrawing();
+            comecarDesenho();
 
             ClearBackground(RAYWHITE);
 
             desenharMenu();
 
-            EndDrawing();
+            terminarDesenho();
 
             continue;
         }
@@ -952,13 +1017,13 @@ int main(void) {
                 continue;
             }
 
-            BeginDrawing();
+            comecarDesenho();
 
             ClearBackground(RAYWHITE);
 
             desenharSequencia(ranking);
 
-            EndDrawing();
+            terminarDesenho();
 
             continue;
         }
@@ -1102,7 +1167,7 @@ int main(void) {
                 }
             }
 
-            BeginDrawing();
+            comecarDesenho();
 
             ClearBackground(RAYWHITE);
 
@@ -1133,7 +1198,7 @@ int main(void) {
                 DrawText(mensagem, 115, 665, 18, RED);
             }
 
-            EndDrawing();
+            terminarDesenho();
 
             continue;
         }
@@ -1237,7 +1302,7 @@ int main(void) {
                 }
             }
 
-            BeginDrawing();
+            comecarDesenho();
 
             ClearBackground(RAYWHITE);
 
@@ -1273,7 +1338,7 @@ int main(void) {
                          95, 610, 20, DARKGRAY);
             }
 
-            EndDrawing();
+            terminarDesenho();
 
             continue;
         }
@@ -1388,7 +1453,7 @@ int main(void) {
             }
         }
 
-        BeginDrawing();
+        comecarDesenho();
 
         ClearBackground(RAYWHITE);
 
@@ -1420,7 +1485,7 @@ int main(void) {
                      95, 610, 20, DARKGRAY);
         }
 
-        EndDrawing();
+        terminarDesenho();
     }
 
     
@@ -1428,6 +1493,7 @@ int main(void) {
     UnloadSound(resp_ok);
     
     CloseAudioDevice();
+    UnloadRenderTexture(tela);
     CloseWindow();
     
     finalizarAPI();
