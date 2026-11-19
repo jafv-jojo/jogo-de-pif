@@ -1091,13 +1091,124 @@ int main(void) {
     
     Sound buzzer = LoadSound("sons/sfx/buzzer.wav");
     Sound resp_ok = LoadSound("sons/sfx/resp_ok.wav");
+    Sound gameover = LoadSound("sons/sfx/gameover.wav");
+    Sound start = LoadSound("sons/sfx/startgame.wav");
+    Sound vitoria = LoadSound("sons/sfx/vitoria.wav");
+    Music msc_dueto = LoadMusicStream("sons/musica/msc_dueto.wav");
+    Music msc_normal = LoadMusicStream("sons/musica/msc_normal.wav");
+    Music msc_quarteto = LoadMusicStream("sons/musica/msc_quarteto.wav");
     SetSoundVolume(buzzer, 0.5f);
     SetSoundVolume(resp_ok, 0.5f);    
+    SetSoundVolume(gameover, 0.5f);
+    SetSoundVolume(start, 0.5f);
+    SetSoundVolume(vitoria, 0.5f);
+    SetSoundVolume(msc_normal, 0.37f);
+    SetSoundVolume(msc_quarteto, 0.37f);
+    SetSoundVolume(msc_dueto, 0.37f);
+    int modo_audioagr = -1;
+    int partida_anterior_fim = 0;
+
 
     SetExitKey(KEY_NULL);
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
+        // ==========\ CONTROLE DAS MUSICAS E SONS DA PARTIDA /=======
+
+        int modoaudio = -1;
+
+        if (telaAtual == TELA_TERMO) {
+            modoaudio = TELA_TERMO;
+        }
+        else if (telaAtual == TELA_DUETO) {
+            modoaudio = TELA_DUETO;
+        }
+        else if (telaAtual == TELA_QUARTETO) {
+            modoaudio = TELA_QUARTETO;
+        }
+
+         
+        int terminou_agora = 0; //   1131-1132 -> ver se a partida acabou e com vitoria
+        int venceu_agora = 0; 
+
+        if (telaAtual == TELA_TERMO) {
+            terminou_agora = jogo.terminou;
+            venceu_agora = jogo.venceu;
+        }
+        else if (telaAtual == TELA_DUETO) {
+            terminou_agora = dueto.terminou;
+            venceu_agora = dueto.venceu;
+        }
+        else if (telaAtual == TELA_QUARTETO) {
+            terminou_agora = quarteto.terminou;
+            venceu_agora = quarteto.venceu;
+        }
+
+        Music *musica_atual = NULL; // selecionar msc correspondente ao modo
+
+        if (modoaudio == TELA_TERMO) {
+            musica_atual = &msc_normal;
+        }
+        else if (modoaudio == TELA_DUETO) {
+            musica_atual = &msc_dueto;
+        }
+        else if (modoaudio == TELA_QUARTETO) {
+            musica_atual = &msc_quarteto;
+        }
+
+        
+        if (modoaudio != modoaudio_agora) { // ver se player foi p outro modo
+
+            StopMusicStream(msc_normal);
+            StopMusicStream(msc_dueto);
+            StopMusicStream(msc_quarteto);
+
+            modoaudio_agora = modoaudio;
+            partida_anterior_fim = 0;
+
+            
+            if (musica_atual != NULL && !terminou_agora) {
+
+                PlaySound(start);
+
+                SeekMusicStream(*musica_atual, 0.0f);
+                PlayMusicStream(*musica_atual);
+            }
+        }
+
+        if (modoaudio != -1) {
+
+            if (terminou_agora&& !partida_anterior_fim) {
+
+                StopMusicStream(*musica_atual);
+
+                if (venceu_agora) {
+                    PlaySound(vitoria);
+                }
+                else {
+                    PlaySound(gameover);
+                }
+
+                partida_anterior_fim = 1;
+            }
+
+            
+            else if (!terminouAgora && partidaTerminadaAnterior) { // reinicio partida
+
+                PlaySound(start);
+
+                SeekMusicStream(*musica_atual, 0.0f);
+                PlayMusicStream(*musica_atual);
+
+                partida_anterior_fim = 0;
+            }
+
+            
+            if (!terminouAgora) { // deixar msc rolando enquanto o jogo nn acaba
+                UpdateMusicStream(*musicaAtual);
+            }
+        }
+
 
         if (IsKeyPressed(KEY_F11)) {
             ToggleBorderlessWindowed();
@@ -1166,7 +1277,7 @@ int main(void) {
                 cursorTermo = 0;
                 mensagem[0] = '\0';
             }
-
+ 
                 if (CheckCollisionPointRec(
                     mouse, (Rectangle){150, 340, 300, 75})) {
 
@@ -1205,7 +1316,7 @@ int main(void) {
                 }
             }
 
-            comecarDesenho();
+            comecarDesenho(); 
 
             ClearBackground(RAYWHITE);
 
@@ -1251,7 +1362,7 @@ int main(void) {
         if (telaAtual == TELA_QUARTETO) {
 
             if (quarteto.terminou && IsKeyPressed(KEY_R)) {
-
+                PlaySound(start);
                 char novasPalavras[QUARTETO_QUANTIDADE_PALAVRAS]
                                   [QUARTETO_TAMANHO + 1];
 
@@ -1573,7 +1684,7 @@ if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
             }
 
             if (dueto.terminou && IsKeyPressed(KEY_R)) {
-
+                PlaySound(startgame);
                 char nova1[DUETO_TAMANHO + 1];
                 char nova2[DUETO_TAMANHO + 1];
 
@@ -1767,7 +1878,7 @@ if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
         }
 
         if (jogo.terminou && IsKeyPressed(KEY_R)) {
-
+            PlaySound(start);
             if (sortearPalavraTxt(palavra)) {
                 iniciarJogo(&jogo, palavra);
 
@@ -1842,6 +1953,12 @@ if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
     
     UnloadSound(buzzer); 
     UnloadSound(resp_ok);
+    UnloadSound(gameover);
+    UnloadSound(start);
+    UnloadSound(vitoria);
+    UnloadMusicStream(msc_dueto);
+    UnloadMusicStream(msc_normal);
+    UnloadMusicStream(msc_quarteto);
     
     CloseAudioDevice();
     UnloadRenderTexture(tela);
