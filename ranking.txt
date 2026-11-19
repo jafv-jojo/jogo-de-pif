@@ -1,2 +1,6 @@
 Jogador 6 1
 Jogador 5 1
+Jogador 5 1
+Jogador 6 0
+Jogador 6 1
+Jogador 6 1

@@ -182,6 +182,97 @@ void liberarLista(ListaPalavras *lista) {
 
 
 
+
+#define TEMPO_LETRA 0.15
+#define TOTAL_CONFETES 150
+
+double inicioRevelacao = -10.0;
+
+int revelacaoAcabou(void) {
+    return GetTime() - inicioRevelacao > 5 * TEMPO_LETRA + 0.2;
+}
+
+typedef struct {
+    float x;
+    float y;
+    float velocidadeX;
+    float velocidadeY;
+    Color cor;
+} Confete;
+
+Confete confetes[TOTAL_CONFETES];
+int confeteAtivo = 0;
+
+void iniciarConfete(void) {
+
+    Color cores[4] = {GREEN, GOLD, BLUE, RED};
+
+    for (int i = 0; i < TOTAL_CONFETES; i++) {
+        confetes[i].x = GetRandomValue(0, LARGURA);
+        confetes[i].y = GetRandomValue(-500, 0);
+        confetes[i].velocidadeX = GetRandomValue(-60, 60);
+        confetes[i].velocidadeY = GetRandomValue(150, 350);
+        confetes[i].cor = cores[GetRandomValue(0, 3)];
+    }
+
+    confeteAtivo = 1;
+}
+
+void atualizarConfete(void) {
+
+    if (!confeteAtivo) {
+        return;
+    }
+
+    float dt = GetFrameTime();
+
+    for (int i = 0; i < TOTAL_CONFETES; i++) {
+
+        confetes[i].x += confetes[i].velocidadeX * dt;
+        confetes[i].y += confetes[i].velocidadeY * dt;
+
+        if (confetes[i].y > ALTURA - 8) {
+            confetes[i].y = ALTURA - 8;
+            confetes[i].velocidadeX = 0;
+            confetes[i].velocidadeY = 0;
+        }
+    }
+}
+
+void desenharConfete(void) {
+
+    if (!confeteAtivo) {
+        return;
+    }
+
+    for (int i = 0; i < TOTAL_CONFETES; i++) {
+        DrawRectangle((int)confetes[i].x, (int)confetes[i].y, 8, 8, confetes[i].cor);
+    }
+}
+
+void desenharBotao(Rectangle botao, const char *texto, Color cor) {
+
+    if (CheckCollisionPointRec(GetMousePosition(), botao)) {
+        botao.x -= 5;
+        botao.y -= 5;
+        botao.width += 10;
+        botao.height += 10;
+        cor = ColorBrightness(cor, 0.2f);
+    }
+
+    Rectangle sombra = {botao.x, botao.y + 6, botao.width, botao.height};
+
+    DrawRectangleRounded(sombra, 0.3f, 10, Fade(BLACK, 0.2f));
+    DrawRectangleRounded(botao, 0.3f, 10, cor);
+
+    int larguraTexto = MeasureText(texto, 26);
+
+    DrawText(texto,
+             (int)(botao.x + (botao.width - larguraTexto) / 2),
+             (int)(botao.y + (botao.height - 26) / 2),
+             26, WHITE);
+}
+
 RenderTexture2D tela;
 
 void comecarDesenho(void) {
@@ -264,7 +355,13 @@ void desenharLetra(char letra, int x, int y, int teclado[26]) {
 
     char texto[2] = {letra, '\0'};
 
-    DrawRectangle(x, y, 48, 34, cor);
+    Rectangle tecla = {x, y, 48, 34};
+
+    if (CheckCollisionPointRec(GetMousePosition(), tecla)) {
+        cor = ColorBrightness(cor, -0.15f);
+    }
+
+    DrawRectangleRounded(tecla, 0.3f, 6, cor);
     DrawText(texto, x + (48 - MeasureText(texto, 20)) / 2, y + 7, 20, corTexto);
 }
 
@@ -278,14 +375,14 @@ void desenharTeclado(int teclado[26]) {
         desenharLetra(linha2[i], 60 + i * 54, 724, teclado);
     }
 
-    DrawRectangle(33, 763, 75, 34, LIGHTGRAY);
+    DrawRectangleRounded((Rectangle){33, 763, 75, 34}, 0.3f, 6, LIGHTGRAY);
     DrawText("ENTER", 33 + (75 - MeasureText("ENTER", 16)) / 2, 772, 16, DARKGRAY);
 
     for (int i = 0; i < 7; i++) {
         desenharLetra(linha3[i], 114 + i * 54, 763, teclado);
     }
 
-    DrawRectangle(492, 763, 75, 34, LIGHTGRAY);
+    DrawRectangleRounded((Rectangle){492, 763, 75, 34}, 0.3f, 6, LIGHTGRAY);
     DrawText("APAGAR", 492 + (75 - MeasureText("APAGAR", 16)) / 2, 772, 16, DARKGRAY);
 }
 
@@ -336,45 +433,38 @@ char teclaClicada(void) {
 void desenharMenu(void) {
 
     int xTitulo = (600 - MeasureText("CERMO", 40)) / 2;
+    int yTitulo = 90 + (int)(sinf(GetTime() * 2) * 6);
 
-    DrawText("C", xTitulo, 90, 40, BLUE);
-    DrawText("ERMO", xTitulo + MeasureText("C", 40) + 4, 90, 40, DARKGRAY);
+    DrawText("C", xTitulo, yTitulo, 40, BLUE);
+    DrawText("ERMO", xTitulo + MeasureText("C", 40) + 4, yTitulo, 40, DARKGRAY);
 
     DrawText("Escolha o modo de jogo", 155, 155, 22, GRAY);
 
-    DrawRectangle(150, 240, 300, 75, DARKGREEN);
-    DrawText("NORMAL",
-             150 + (300 - MeasureText("NORMAL", 30)) / 2,
-             262, 30, WHITE);
-
-    DrawRectangle(150, 340, 300, 75, GRAY);
-    DrawText("DUETO",
-             150 + (300 - MeasureText("DUETO", 30)) / 2,
-             362, 30, WHITE);
-
-    DrawRectangle(150, 440, 300, 75, GRAY);
-    DrawText("QUARTETO",
-             150 + (300 - MeasureText("QUARTETO", 30)) / 2,
-             462, 30, WHITE);
-
-    DrawRectangle(150, 540, 300, 75, GRAY);
-    DrawText("PARTIDAS",
-             150 + (300 - MeasureText("PARTIDAS", 25)) / 2,
-             565, 25, WHITE);
-
-    DrawRectangle(150, 640, 300, 75, GRAY);
+    desenharBotao((Rectangle){150, 240, 300, 75}, "NORMAL", (Color){106, 170, 100, 255});
+    desenharBotao((Rectangle){150, 340, 300, 75}, "DUETO", (Color){201, 180, 88, 255});
+    desenharBotao((Rectangle){150, 440, 300, 75}, "QUARTETO", (Color){80, 140, 220, 255});
+    desenharBotao((Rectangle){150, 540, 300, 75}, "PARTIDAS", GRAY);
 
     if (IsWindowState(FLAG_BORDERLESS_WINDOWED_MODE)) {
-        DrawText("SAIR DA TELA CHEIA",
-                 150 + (300 - MeasureText("SAIR DA TELA CHEIA", 25)) / 2,
-                 665, 25, WHITE);
+        desenharBotao((Rectangle){150, 640, 300, 75}, "SAIR DA TELA CHEIA", DARKGRAY);
     } else {
-        DrawText("TELA CHEIA",
-                 150 + (300 - MeasureText("TELA CHEIA", 25)) / 2,
-                 665, 25, WHITE);
+        desenharBotao((Rectangle){150, 640, 300, 75}, "TELA CHEIA", DARKGRAY);
     }
 
     DrawText("F11 - tela cheia", 220, 740, 20, GRAY);
+}
+
+double inicioRanking = 0;
+
+void desenharCartao(int x, int y, int valor, const char *nome, Color cor) {
+
+    DrawRectangleRounded((Rectangle){x, y + 4, 245, 80}, 0.25f, 10, Fade(BLACK, 0.1f));
+    DrawRectangleRounded((Rectangle){x, y, 245, 80}, 0.25f, 10, WHITE);
+
+    const char *numero = TextFormat("%d", valor);
+
+    DrawText(numero, x + (245 - MeasureText(numero, 36)) / 2, y + 10, 36, cor);
+    DrawText(nome, x + (245 - MeasureText(nome, 15)) / 2, y + 54, 15, GRAY);
 }
 
 void desenharSequencia(Resultado *historico) {
@@ -383,78 +473,98 @@ void desenharSequencia(Resultado *historico) {
 
     calcularEstatisticas(historico, &estatisticas);
 
-    DrawText("MINHA SEQUÊNCIA", 145, 35, 32, DARKGRAY);
+    DrawText("MINHA SEQUENCIA", (600 - MeasureText("MINHA SEQUENCIA", 34)) / 2, 30, 34, DARKGRAY);
 
-    DrawText("Estatisticas das partidas no modo normal",
-             105, 78, 17, GRAY);
+    int porcentagem = 0;
 
-    DrawRectangle(55, 120, 230, 90, LIGHTGRAY);
-    DrawRectangleLines(55, 120, 230, 90, DARKGRAY);
+    if (estatisticas.totalPartidas > 0) {
+        porcentagem = estatisticas.totalVitorias * 100 / estatisticas.totalPartidas;
+    }
 
-    DrawText(TextFormat("%d", estatisticas.totalPartidas),
-             75, 132, 35, DARKGRAY);
+    const char *subtitulo = TextFormat("Modo normal - %d%% de vitorias", porcentagem);
 
-    DrawText("PARTIDAS JOGADAS", 75, 177, 16, GRAY);
+    DrawText(subtitulo, (600 - MeasureText(subtitulo, 18)) / 2, 72, 18, GRAY);
 
-    DrawRectangle(315, 120, 230, 90, LIGHTGRAY);
-    DrawRectangleLines(315, 120, 230, 90, DARKGRAY);
+    desenharCartao(45, 110, estatisticas.totalPartidas, "PARTIDAS JOGADAS", DARKGRAY);
+    desenharCartao(310, 110, estatisticas.totalVitorias, "VITORIAS", (Color){106, 170, 100, 255});
+    desenharCartao(45, 205, estatisticas.sequenciaAtual, "SEQUENCIA ATUAL", (Color){201, 160, 40, 255});
+    desenharCartao(310, 205, estatisticas.melhorSequencia, "MELHOR SEQUENCIA", (Color){80, 140, 220, 255});
 
-    DrawText(TextFormat("%d", estatisticas.totalVitorias),
-             335, 132, 35, GREEN);
+    DrawText("DISTRIBUICAO DE TENTATIVAS", 45, 310, 20, DARKGRAY);
 
-    DrawText("VITORIAS", 335, 177, 16, GRAY);
-
-    DrawRectangle(55, 225, 230, 90, LIGHTGRAY);
-    DrawRectangleLines(55, 225, 230, 90, DARKGRAY);
-
-    DrawText(TextFormat("%d", estatisticas.sequenciaAtual),
-             75, 237, 35, DARKGREEN);
-
-    DrawText("SEQUENCIA ATUAL", 75, 282, 16, GRAY);
-
-    DrawRectangle(315, 225, 230, 90, LIGHTGRAY);
-    DrawRectangleLines(315, 225, 230, 90, DARKGRAY);
-
-    DrawText(TextFormat("%d", estatisticas.melhorSequencia),
-             335, 237, 35, DARKBLUE);
-
-    DrawText("MELHOR SEQUENCIA", 335, 282, 16, GRAY);
-
-    DrawText("HISTORICO RECENTE", 55, 350, 20, DARKGRAY);
+    int distribuicao[6] = {0, 0, 0, 0, 0, 0};
 
     Resultado *atual = historico;
 
-    int limite = 9;
+    while (atual != NULL) {
+
+        if (atual->venceu && atual->tentativas >= 1 && atual->tentativas <= 6) {
+            distribuicao[atual->tentativas - 1]++;
+        }
+
+        atual = atual->proximo;
+    }
+
+    int maior = 1;
+
+    for (int i = 0; i < 6; i++) {
+        if (distribuicao[i] > maior) {
+            maior = distribuicao[i];
+        }
+    }
+
+    float crescimento = (GetTime() - inicioRanking) * 2;
+
+    if (crescimento > 1) {
+        crescimento = 1;
+    }
+
+    for (int i = 0; i < 6; i++) {
+
+        int y = 345 + i * 30;
+        int largura = 35 + distribuicao[i] * 420 / maior * crescimento;
+
+        DrawText(TextFormat("%d", i + 1), 50, y + 3, 20, DARKGRAY);
+
+        DrawRectangleRounded((Rectangle){75, y, largura, 24}, 0.4f, 6, (Color){106, 170, 100, 255});
+
+        DrawText(TextFormat("%d", distribuicao[i]), 75 + largura - 22, y + 3, 18, WHITE);
+    }
+
+    DrawText("ULTIMAS PARTIDAS", 45, 535, 20, DARKGRAY);
+
+    atual = historico;
+
     int indice = 0;
 
     if (atual == NULL) {
-        DrawText("Nenhuma partida registrada ainda.",
-                 55, 395, 18, GRAY);
+        DrawText("Nenhuma partida registrada ainda.", 45, 575, 18, GRAY);
     }
 
-    while (atual != NULL && indice < limite) {
+    while (atual != NULL && indice < 4) {
 
-        int numeroPartida = estatisticas.totalPartidas - indice;
+        int y = 568 + indice * 38;
 
-        const char *resultado =
-            atual->venceu ? "VITORIA" : "DERROTA";
+        DrawRectangleRounded((Rectangle){45, y, 510, 32}, 0.4f, 8, WHITE);
 
-        Color cor = atual->venceu ? GREEN : RED;
+        DrawText(TextFormat("Partida %d", estatisticas.totalPartidas - indice), 60, y + 8, 18, DARKGRAY);
 
-        DrawText(TextFormat("Partida %d", numeroPartida),
-                 60, 390 + indice * 29, 17, DARKGRAY);
+        if (atual->venceu) {
+            DrawRectangleRounded((Rectangle){235, y + 4, 110, 24}, 0.5f, 8, (Color){106, 170, 100, 255});
+            DrawText("VITORIA", 235 + (110 - MeasureText("VITORIA", 16)) / 2, y + 8, 16, WHITE);
+        } else {
+            DrawRectangleRounded((Rectangle){235, y + 4, 110, 24}, 0.5f, 8, (Color){220, 80, 80, 255});
+            DrawText("DERROTA", 235 + (110 - MeasureText("DERROTA", 16)) / 2, y + 8, 16, WHITE);
+        }
 
-        DrawText(resultado, 245, 390 + indice * 29, 17, cor);
-
-        DrawText(TextFormat("%d tentativas", atual->tentativas),
-                 365, 390 + indice * 29, 17, GRAY);
+        DrawText(TextFormat("%d tentativas", atual->tentativas), 405, y + 8, 18, GRAY);
 
         atual = atual->proximo;
 
         indice++;
     }
 
-    DrawText("ESC - Voltar ao menu", 195, 665, 18, DARKGRAY);
+    desenharBotao((Rectangle){200, 730, 200, 50}, "VOLTAR", DARKGRAY);
 }
 /*
 ██████  ███████ ███████ ███████ ███    ██ ██   ██  █████  ██████      ██████  ██    ██ ███████ ████████  ██████  
@@ -503,10 +613,18 @@ void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float desloc
                     }
                 }
 
-                DrawRectangle(x, y, tamanhoCelula, tamanhoCelula, cor);
+                if (i == dueto->quantidadeTentativas - 1) {
 
-                DrawRectangleLines(x, y, tamanhoCelula,
-                                   tamanhoCelula, DARKGRAY);
+                    float tempo = GetTime() - inicioRevelacao;
+
+                    if (tempo < j * TEMPO_LETRA) {
+                        cor = LIGHTGRAY;
+                    } else if (tempo < j * TEMPO_LETRA + TEMPO_LETRA) {
+                        y -= 6;
+                    }
+                }
+
+                DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
 
                 char letra[2] = {'\0', '\0'};
 
@@ -587,10 +705,18 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
                     }
                 }
 
-                DrawRectangle(x, y, tamanhoCelula, tamanhoCelula, cor);
+                if (i == quarteto->quantidadeTentativas - 1) {
 
-                DrawRectangleLines(x, y, tamanhoCelula,
-                                   tamanhoCelula, DARKGRAY);
+                    float tempo = GetTime() - inicioRevelacao;
+
+                    if (tempo < j * TEMPO_LETRA) {
+                        cor = LIGHTGRAY;
+                    } else if (tempo < j * TEMPO_LETRA + TEMPO_LETRA) {
+                        y -= 6;
+                    }
+                }
+
+                DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
 
                 char letra[2] = {'\0', '\0'};
 
@@ -650,10 +776,18 @@ void desenharJogo(Jogo *jogo, char entrada[], int linhaTremendo, float deslocame
                 }
             }
 
-            DrawRectangle(x, y, tamanhoCelula, tamanhoCelula, cor);
+            if (i == jogo->quantidadeTentativas - 1) {
 
-            DrawRectangleLines(x, y, tamanhoCelula,
-                               tamanhoCelula, DARKGRAY);
+                float tempo = GetTime() - inicioRevelacao;
+
+                if (tempo < j * TEMPO_LETRA) {
+                    cor = LIGHTGRAY;
+                } else if (tempo < j * TEMPO_LETRA + TEMPO_LETRA) {
+                    y -= 6;
+                }
+            }
+
+            DrawRectangleRounded((Rectangle){x, y, tamanhoCelula, tamanhoCelula}, 0.15f, 6, cor);
 
             char letra[2] = {'\0', '\0'};
 
@@ -949,6 +1083,10 @@ int main(void) {
             (telaAtual == TELA_DUETO && dueto.terminou) ||
             (telaAtual == TELA_QUARTETO && quarteto.terminou);
 
+        if (!revelacaoAcabou()) {
+            resultado_aparecendo = 0;
+        }
+
         if (resultado_aparecendo && inicioAnimResultado < 0.0) {
             inicioAnimResultado = GetTime();
         }
@@ -993,6 +1131,7 @@ int main(void) {
 
                 if (CheckCollisionPointRec(mouse, (Rectangle){150, 540, 300, 75})) {
                     telaAtual = TELA_SEQUENCIA;
+                    inicioRanking = GetTime();
                 }
 
                 if (CheckCollisionPointRec(mouse, (Rectangle){150, 640, 300, 75})) {
@@ -1017,9 +1156,15 @@ int main(void) {
                 continue;
             }
 
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) &&
+                CheckCollisionPointRec(GetMousePosition(), (Rectangle){200, 730, 200, 50})) {
+                telaAtual = TELA_MENU;
+                continue;
+            }
+
             comecarDesenho();
 
-            ClearBackground(RAYWHITE);
+            ClearBackground((Color){240, 240, 235, 255});
 
             desenharSequencia(ranking);
 
@@ -1032,6 +1177,7 @@ int main(void) {
 
             telaAtual = TELA_MENU;
             entrada[0] = '\0';
+            confeteAtivo = 0;
 
             continue;
         }
@@ -1082,6 +1228,7 @@ int main(void) {
                                    novasPalavras[3]);
                     
                     inicioAnimResultado = -1.0;
+                    confeteAtivo = 0;
                     entrada[0] = '\0';
                     mensagem[0] = '\0';
 
@@ -1150,6 +1297,7 @@ int main(void) {
                     if (resultado == 1) {
                         PlaySound(resp_ok);
                         enviarTentativaQuarteto(&quarteto, entrada);
+                        inicioRevelacao = GetTime();
                         mensagem[0] = '\0';
 
                     } else if (resultado == 0) {
@@ -1179,8 +1327,14 @@ int main(void) {
 
             limparTeclado(teclado);
 
+            int linhasProntas = quarteto.quantidadeTentativas;
+
+            if (!revelacaoAcabou()) {
+                linhasProntas--;
+            }
+
             for (int tab = 0; tab < QUARTETO_QUANTIDADE_PALAVRAS; tab++) {
-                for (int i = 0; i < quarteto.quantidadeTentativas; i++) {
+                for (int i = 0; i < linhasProntas; i++) {
                     if (!quarteto.acertou[tab] || i < quarteto.tentativaAcerto[tab]) {
                         marcarTeclado(teclado, quarteto.tentativas[i], quarteto.cores[tab][i]);
                     }
@@ -1191,12 +1345,22 @@ int main(void) {
 
             if (quarteto.terminou) {
 
-                desenharResultadoQuarteto(&quarteto, deslocamento_resultadoY);
+                if (revelacaoAcabou()) {
+
+                    if (quarteto.venceu && !confeteAtivo) {
+                        iniciarConfete();
+                    }
+
+                    desenharResultadoQuarteto(&quarteto, deslocamento_resultadoY);
+                }
 
             } else if (mensagem[0] != '\0') {
 
                 DrawText(mensagem, 115, 665, 18, RED);
             }
+
+            atualizarConfete();
+            desenharConfete();
 
             terminarDesenho();
 
@@ -1265,6 +1429,7 @@ int main(void) {
                     if (resultadoValidacao == 1) {
                         PlaySound(resp_ok);
                         enviarTentativaDueto(&dueto, entrada);
+                        inicioRevelacao = GetTime();
                         mensagem[0] = '\0';
 
                     } else if (resultadoValidacao == 0) {
@@ -1294,6 +1459,7 @@ int main(void) {
 
                             iniciarDueto(&dueto, nova1, nova2);
                             inicioAnimResultado = -1.0;
+                            confeteAtivo = 0;
                             entrada[0] = '\0';
 
                             break;
@@ -1314,8 +1480,14 @@ int main(void) {
 
             limparTeclado(teclado);
 
+            int linhasProntas = dueto.quantidadeTentativas;
+
+            if (!revelacaoAcabou()) {
+                linhasProntas--;
+            }
+
             for (int tab = 0; tab < DUETO_QUANTIDADE_PALAVRAS; tab++) {
-                for (int i = 0; i < dueto.quantidadeTentativas; i++) {
+                for (int i = 0; i < linhasProntas; i++) {
                     if (!dueto.acertou[tab] || i < dueto.tentativaAcerto[tab]) {
                         marcarTeclado(teclado, dueto.tentativas[i], dueto.cores[tab][i]);
                     }
@@ -1326,7 +1498,14 @@ int main(void) {
 
             if (dueto.terminou) {
 
-                desenharResultadoDueto(&dueto, deslocamento_resultadoY);
+                if (revelacaoAcabou()) {
+
+                    if (dueto.venceu && !confeteAtivo) {
+                        iniciarConfete();
+                    }
+
+                    desenharResultadoDueto(&dueto, deslocamento_resultadoY);
+                }
 
             } else if (mensagem[0] != '\0') {
 
@@ -1337,6 +1516,9 @@ int main(void) {
                 DrawText("Digite 5 letras e pressione enter",
                          95, 610, 20, DARKGRAY);
             }
+
+            atualizarConfete();
+            desenharConfete();
 
             terminarDesenho();
 
@@ -1404,6 +1586,7 @@ int main(void) {
                 if (resultadoValidacao == 1) {
                     PlaySound(resp_ok);
                     enviarTentativa(&jogo, entrada);
+                    inicioRevelacao = GetTime();
                     mensagem[0] = '\0';
 
                 } else if (resultadoValidacao == 0) {
@@ -1440,6 +1623,7 @@ int main(void) {
 
                 // variaveis para animacoes:
                 inicioAnimResultado = -1.0;
+                confeteAtivo = 0;
                 inicioTremor = -1.0;
                 linhaTremendo = -1;
 
@@ -1465,7 +1649,13 @@ int main(void) {
 
         limparTeclado(teclado);
 
-        for (int i = 0; i < jogo.quantidadeTentativas; i++) {
+        int linhasProntas = jogo.quantidadeTentativas;
+
+        if (!revelacaoAcabou()) {
+            linhasProntas--;
+        }
+
+        for (int i = 0; i < linhasProntas; i++) {
             marcarTeclado(teclado, jogo.tentativas[i], jogo.cores[i]);
         }
 
@@ -1473,7 +1663,14 @@ int main(void) {
 
         if (jogo.terminou) {
 
-            desenharResultadoTermo(&jogo, deslocamento_resultadoY);
+            if (revelacaoAcabou()) {
+
+                if (jogo.venceu && !confeteAtivo) {
+                    iniciarConfete();
+                }
+
+                desenharResultadoTermo(&jogo, deslocamento_resultadoY);
+            }
 
         } else if (mensagem[0] != '\0') {
 
@@ -1484,6 +1681,9 @@ int main(void) {
             DrawText("Digite 5 letras e pressione enter",
                      95, 610, 20, DARKGRAY);
         }
+
+        atualizarConfete();
+        desenharConfete();
 
         terminarDesenho();
     }
