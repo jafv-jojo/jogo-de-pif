@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11
-LIBS = $(shell pkg-config --cflags --libs raylib libcurl)
+LIBS = $(shell pkg-config --cflags --libs raylib)
 
-ARQUIVOS = main.c jogo.c palavras.c ranking.c dueto.c quarteto.c
+ARQUIVOS = main.c jogo.c ranking.c dueto.c quarteto.c
 all: termo.exe
 
 termo.exe: $(ARQUIVOS)

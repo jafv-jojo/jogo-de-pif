@@ -4,10 +4,8 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <math.h> 
 
 #include "jogo.h"
-#include "palavras.h"
 #include "ranking.h"
 #include "dueto.h"
 #include "quarteto.h"
@@ -31,8 +29,7 @@ typedef struct {
     int total;
 } ListaPalavras;
 
-ListaPalavras respostas = {NULL, 0};
-ListaPalavras validas = {NULL, 0};
+ListaPalavras listaPalavras = {NULL, 0};
 
 int converterLinhaTxt(const char *linha, char destino[TAMANHO + 1]) {
 
@@ -139,11 +136,11 @@ int carregarPalavrasTxt(const char arquivo[], ListaPalavras *lista) {
 
 int sortearPalavraTxt(char destino[]) {
 
-    if (respostas.total == 0) {
+    if (listaPalavras.total == 0) {
         return 0;
     }
 
-    strcpy(destino, respostas.palavras[rand() % respostas.total]);
+    strcpy(destino, listaPalavras.palavras[rand() % listaPalavras.total]);
 
     return 1;
 }
@@ -161,7 +158,7 @@ int estaNaLista(ListaPalavras *lista, const char palavra[]) {
 
 int validarPalavraTxt(const char tentativa[]) {
 
-    if (estaNaLista(&respostas, tentativa) || estaNaLista(&validas, tentativa)) {
+    if (estaNaLista(&listaPalavras, tentativa)) {
         return 1;
     }
 
@@ -183,7 +180,7 @@ void liberarLista(ListaPalavras *lista) {
 
 
 
-#define TEMPO_LETRA 0.12
+#define TEMPO_LETRA 0.15
 #define TOTAL_CONFETES 150
 
 double inicioRevelacao = -10.0;
@@ -440,7 +437,12 @@ char teclaClicada(void) {
 void desenharMenu(void) {
 
     int xTitulo = (600 - MeasureText("CERMO", 40)) / 2;
-    int yTitulo = 90 + (int)(sinf(GetTime() * 2) * 6);
+    int passo = (int)(GetTime() * 8) % 12;
+    int yTitulo = 85 + passo;
+
+    if (passo > 6) {
+        yTitulo = 85 + (12 - passo);
+    }
 
     DrawText("C", xTitulo, yTitulo, 40, BLUE);
     DrawText("ERMO", xTitulo + MeasureText("C", 40) + 4, yTitulo, 40, DARKGRAY);
@@ -923,28 +925,17 @@ int main(void) {
 
     int telaAtual = TELA_MENU;
     
-    if (!inicializarAPI()) {
-        printf("Erro ao inicializar a API.\n");
-        return 1;
-    }
-
     srand((unsigned int)time(NULL));
 
-    if (carregarPalavrasTxt("palavras_5_letras.txt", &respostas) == 0) {
+    if (carregarPalavrasTxt("palavras_5_letras.txt", &listaPalavras) == 0) {
         printf("Erro ao carregar palavras_5_letras.txt.\n");
-        finalizarAPI();
         return 1;
-    }
-
-    if (carregarPalavrasTxt("palavras_validas.txt", &validas) == 0) {
-        printf("Aviso: palavras_validas.txt nao encontrado, validando so com palavras_5_letras.txt.\n");
     }
 
     char palavra[TAMANHO + 1];
 
     if (!sortearPalavraTxt(palavra)) {
-        printf("Erro ao obter palavra da API.\n");
-        finalizarAPI();
+        printf("Erro ao sortear a palavra.\n");
         return 1;
     }
 
@@ -966,7 +957,6 @@ int main(void) {
 
     if (!sortearPalavraTxt(palavraDueto1)) {
         printf("Erro ao obter a primeira palavra do Dueto.\n");
-        finalizarAPI();
         liberarRanking(ranking);
         return 1;
     }
@@ -985,7 +975,6 @@ int main(void) {
 
     if (!palavraDiferente) {
         printf("Erro ao obter duas palavras diferentes.\n");
-        finalizarAPI();
         liberarRanking(ranking);
         return 1;
     }
@@ -1031,7 +1020,6 @@ int main(void) {
 
         printf("Erro ao obter quatro palavras diferentes.\n");
 
-        finalizarAPI();
         liberarRanking(ranking);
 
         return 1;
@@ -1045,7 +1033,7 @@ int main(void) {
 
     int registroSalvo = 0;
 
-    InitWindow(LARGURA, ALTURA, "CERMO");
+    InitWindow(LARGURA, ALTURA, "Cermo");
 
     Image icone = GenImageColor(64, 64, RAYWHITE);
 
@@ -1081,8 +1069,13 @@ int main(void) {
 
             if (tempoDecorrido < duracaoTremida) {
                 float intensidade = 1.0f - (tempoDecorrido / duracaoTremida);
-                deslocamentoX =
-                    sinf(tempoDecorrido * 70.0f) * 20.0f * intensidade;
+                int lado = (int)(tempoDecorrido * 25) % 2;
+
+                if (lado == 0) {
+                    deslocamentoX = 15.0f * intensidade;
+                } else {
+                    deslocamentoX = -15.0f * intensidade;
+                }
             } else {
                 inicioTremor = -1.0;
                 linhaTremendo = -1;
@@ -1705,12 +1698,9 @@ int main(void) {
     UnloadRenderTexture(tela);
     CloseWindow();
     
-    finalizarAPI();
-
     liberarRanking(ranking);
 
-    liberarLista(&respostas);
-    liberarLista(&validas);
+    liberarLista(&listaPalavras);
 
     return 0;
 }
