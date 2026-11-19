@@ -1102,9 +1102,9 @@ int main(void) {
     SetSoundVolume(gameover, 0.5f);
     SetSoundVolume(start, 0.5f);
     SetSoundVolume(vitoria, 0.5f);
-    SetSoundVolume(msc_normal, 0.37f);
-    SetSoundVolume(msc_quarteto, 0.37f);
-    SetSoundVolume(msc_dueto, 0.37f);
+    SetMusicVolume(msc_normal, 0.37f);
+    SetMusicVolume(msc_quarteto, 0.37f);
+    SetMusicVolume(msc_dueto, 0.37f);
     int modo_audioagr = -1;
     int partida_anterior_fim = 0;
 
@@ -1157,13 +1157,13 @@ int main(void) {
         }
 
         
-        if (modoaudio != modoaudio_agora) { // ver se player foi p outro modo
+        if (modoaudio != modo_audioagr) { // ver se player foi p outro modo
 
             StopMusicStream(msc_normal);
             StopMusicStream(msc_dueto);
             StopMusicStream(msc_quarteto);
 
-            modoaudio_agora = modoaudio;
+            modo_audioagr = modoaudio;
             partida_anterior_fim = 0;
 
             
@@ -1193,7 +1193,7 @@ int main(void) {
             }
 
             
-            else if (!terminouAgora && partidaTerminadaAnterior) { // reinicio partida
+            else if (!terminou_agora && partida_anterior_fim) { // reinicio partida
 
                 PlaySound(start);
 
@@ -1204,8 +1204,8 @@ int main(void) {
             }
 
             
-            if (!terminouAgora) { // deixar msc rolando enquanto o jogo nn acaba
-                UpdateMusicStream(*musicaAtual);
+            if (!terminou_agora) { // deixar msc rolando enquanto o jogo nn acaba
+                UpdateMusicStream(*musica_atual);
             }
         }
 
@@ -1684,7 +1684,7 @@ if ((IsKeyPressed(KEY_ENTER) || clicada == '\n') &&
             }
 
             if (dueto.terminou && IsKeyPressed(KEY_R)) {
-                PlaySound(startgame);
+                PlaySound(start);
                 char nova1[DUETO_TAMANHO + 1];
                 char nova2[DUETO_TAMANHO + 1];
 
