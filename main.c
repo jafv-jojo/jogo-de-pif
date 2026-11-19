@@ -183,7 +183,7 @@ void liberarLista(ListaPalavras *lista) {
 
 
 
-#define TEMPO_LETRA 0.15
+#define TEMPO_LETRA 0.12
 #define TOTAL_CONFETES 150
 
 double inicioRevelacao = -10.0;
@@ -248,6 +248,13 @@ void desenharConfete(void) {
     for (int i = 0; i < TOTAL_CONFETES; i++) {
         DrawRectangle((int)confetes[i].x, (int)confetes[i].y, 8, 8, confetes[i].cor);
     }
+}
+
+void textoCentralizado(const char *texto, int y, int tamanho, Color cor) {
+
+    int larguraTexto = MeasureText(texto, tamanho);
+
+    DrawText(texto, (LARGURA - larguraTexto) / 2, y, tamanho, cor);
 }
 
 void desenharBotao(Rectangle botao, const char *texto, Color cor) {
@@ -438,7 +445,7 @@ void desenharMenu(void) {
     DrawText("C", xTitulo, yTitulo, 40, BLUE);
     DrawText("ERMO", xTitulo + MeasureText("C", 40) + 4, yTitulo, 40, DARKGRAY);
 
-    DrawText("Escolha o modo de jogo", 155, 155, 22, GRAY);
+    textoCentralizado("Escolha o modo de jogo", 155, 22, GRAY);
 
     desenharBotao((Rectangle){150, 240, 300, 75}, "NORMAL", (Color){106, 170, 100, 255});
     desenharBotao((Rectangle){150, 340, 300, 75}, "DUETO", (Color){201, 180, 88, 255});
@@ -451,7 +458,7 @@ void desenharMenu(void) {
         desenharBotao((Rectangle){150, 640, 300, 75}, "TELA CHEIA", DARKGRAY);
     }
 
-    DrawText("F11 - tela cheia", 220, 740, 20, GRAY);
+    textoCentralizado("F11 - tela cheia", 740, 20, GRAY);
 }
 
 double inicioRanking = 0;
@@ -473,7 +480,7 @@ void desenharSequencia(Resultado *historico) {
 
     calcularEstatisticas(historico, &estatisticas);
 
-    DrawText("MINHA SEQUENCIA", (600 - MeasureText("MINHA SEQUENCIA", 34)) / 2, 30, 34, DARKGRAY);
+    textoCentralizado("MINHA SEQUENCIA", 30, 34, DARKGRAY);
 
     int porcentagem = 0;
 
@@ -483,7 +490,7 @@ void desenharSequencia(Resultado *historico) {
 
     const char *subtitulo = TextFormat("Modo normal - %d%% de vitorias", porcentagem);
 
-    DrawText(subtitulo, (600 - MeasureText(subtitulo, 18)) / 2, 72, 18, GRAY);
+    textoCentralizado(subtitulo, 72, 18, GRAY);
 
     desenharCartao(45, 110, estatisticas.totalPartidas, "PARTIDAS JOGADAS", DARKGRAY);
     desenharCartao(310, 110, estatisticas.totalVitorias, "VITORIAS", (Color){106, 170, 100, 255});
@@ -584,8 +591,10 @@ void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float desloc
 
         int inicioX = 45 + tab * 270;
 
-        DrawText(TextFormat("PALAVRA %d", tab + 1),
-                 inicioX + 55, 100, 20, DARKGRAY);
+        const char *titulo = TextFormat("PALAVRA %d", tab + 1);
+        int larguraTabuleiro = 5 * tamanhoCelula + 4 * espaco;
+
+        DrawText(titulo, inicioX + (larguraTabuleiro - MeasureText(titulo, 20)) / 2, 100, 20, DARKGRAY);
 
         for (int i = 0; i < DUETO_MAX_TENTATIVAS; i++) {
 
@@ -648,7 +657,7 @@ void desenharDueto(Dueto *dueto, char entrada[], int linhaTremendo, float desloc
         }
 
         if (dueto->acertou[tab]) {
-            DrawText("ACERTOU!", inicioX + 65, 510, 20, GREEN);
+            DrawText("ACERTOU!", inicioX + (larguraTabuleiro - MeasureText("ACERTOU!", 20)) / 2, 510, 20, GREEN);
         }
     }
 }
@@ -674,8 +683,10 @@ void desenharQuarteto(Quarteto *quarteto, char entrada[], int linhaTremendo, flo
         int inicioX = 80 + coluna * 290;
         int inicioY = 100 + linhaTabuleiro * 290;
 
-        DrawText(TextFormat("PALAVRA %d", tab + 1),
-                 inicioX + 23, inicioY - 16, 18, DARKGRAY);
+        const char *titulo = TextFormat("PALAVRA %d", tab + 1);
+        int larguraTabuleiro = 5 * tamanhoCelula + 4 * espaco;
+
+        DrawText(titulo, inicioX + (larguraTabuleiro - MeasureText(titulo, 18)) / 2, inicioY - 16, 18, DARKGRAY);
 
         for (int i = 0; i < QUARTETO_MAX_TENTATIVAS; i++) {
 
@@ -819,20 +830,17 @@ void desenharResultadoTermo(Jogo *jogo, int deslocamento_resultadoY) {
     DrawRectangleLines(65, 230 + deslocamento_resultadoY, 470, 230, DARKGRAY);
 
     if (jogo->venceu) {
-        DrawText("VOCE VENCEU!", 170, 255 + deslocamento_resultadoY, 30, GREEN);
+        textoCentralizado("VOCE VENCEU!", 255 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU... :'(", 170, 255 + deslocamento_resultadoY, 30, RED);
+        textoCentralizado("VOCE PERDEU... :'(", 255 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavra correta:", 185, 315 + deslocamento_resultadoY, 22, DARKGRAY);
+    textoCentralizado("Palavra correta:", 315 + deslocamento_resultadoY, 22, DARKGRAY);
 
-    int larguraTexto = MeasureText(jogo->palavra, 30);
+    textoCentralizado(jogo->palavra, 350 + deslocamento_resultadoY, 30, DARKGRAY);
 
-    DrawText(jogo->palavra, (600 - larguraTexto) / 2,
-             350  + deslocamento_resultadoY, 30, DARKGRAY);
-
-    DrawText("R - Jogar novamente", 175, 405 + deslocamento_resultadoY, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 435 + deslocamento_resultadoY, 18, DARKGRAY);
+    textoCentralizado("R - Jogar novamente", 405 + deslocamento_resultadoY, 20, DARKGRAY);
+    textoCentralizado("ESC - Voltar ao menu", 435 + deslocamento_resultadoY, 18, DARKGRAY);
 }
 
 void desenharResultadoDueto(Dueto *dueto, int deslocamento_resultadoY) {
@@ -840,12 +848,12 @@ void desenharResultadoDueto(Dueto *dueto, int deslocamento_resultadoY) {
     DrawRectangleLines(65, 230 + deslocamento_resultadoY, 470, 240, DARKGRAY);
 
     if (dueto->venceu) {
-        DrawText("VOCE VENCEU!", 170, 255 + deslocamento_resultadoY, 30, GREEN);
+        textoCentralizado("VOCE VENCEU!", 255 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU... :'(", 170, 255 + deslocamento_resultadoY, 30, RED);
+        textoCentralizado("VOCE PERDEU... :'(", 255 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavras corretas:", 175, 310 + deslocamento_resultadoY, 22, DARKGRAY);
+    textoCentralizado("Palavras corretas:", 310 + deslocamento_resultadoY, 22, DARKGRAY);
 
     const char *respostas = TextFormat(
         "%s  /  %s",
@@ -853,13 +861,10 @@ void desenharResultadoDueto(Dueto *dueto, int deslocamento_resultadoY) {
         dueto->palavras[1]
     );
 
-    int larguraTexto = MeasureText(respostas, 28);
+    textoCentralizado(respostas, 350 + deslocamento_resultadoY, 28, DARKGRAY);
 
-    DrawText(respostas, (600 - larguraTexto) / 2,
-             350 + deslocamento_resultadoY, 28, DARKGRAY);
-
-    DrawText("R - Jogar novamente", 175, 405 + deslocamento_resultadoY, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 440 + deslocamento_resultadoY, 18, DARKGRAY);
+    textoCentralizado("R - Jogar novamente", 405 + deslocamento_resultadoY, 20, DARKGRAY);
+    textoCentralizado("ESC - Voltar ao menu", 440 + deslocamento_resultadoY, 18, DARKGRAY);
 }
 
 void desenharResultadoQuarteto(Quarteto *quarteto, int deslocamento_resultadoY) {
@@ -868,12 +873,12 @@ void desenharResultadoQuarteto(Quarteto *quarteto, int deslocamento_resultadoY) 
     DrawRectangleLines(55, 220 + deslocamento_resultadoY, 490, 270, DARKGRAY);
 
     if (quarteto->venceu) {
-        DrawText("VOCE VENCEU!", 170, 245 + deslocamento_resultadoY, 30, GREEN);
+        textoCentralizado("VOCE VENCEU!", 245 + deslocamento_resultadoY, 30, GREEN);
     } else {
-        DrawText("VOCE PERDEU... :'(", 170, 245 + deslocamento_resultadoY, 30, RED);
+        textoCentralizado("VOCE PERDEU... :'(", 245 + deslocamento_resultadoY, 30, RED);
     }
 
-    DrawText("Palavras corretas:", 175, 300 + deslocamento_resultadoY, 22, DARKGRAY);
+    textoCentralizado("Palavras corretas:", 300 + deslocamento_resultadoY, 22, DARKGRAY);
 
     const char *linha1 = TextFormat(
         "%s / %s",
@@ -881,8 +886,7 @@ void desenharResultadoQuarteto(Quarteto *quarteto, int deslocamento_resultadoY) 
         quarteto->palavras[1]
     );
 
-    DrawText(linha1, (600 - MeasureText(linha1, 25)) / 2,
-             340 + deslocamento_resultadoY, 25, DARKGRAY);
+    textoCentralizado(linha1, 340 + deslocamento_resultadoY, 25, DARKGRAY);
 
     const char *linha2 = TextFormat(
         "%s / %s",
@@ -890,11 +894,10 @@ void desenharResultadoQuarteto(Quarteto *quarteto, int deslocamento_resultadoY) 
         quarteto->palavras[3]
     );
 
-    DrawText(linha2, (600 - MeasureText(linha2, 25)) / 2,
-             375 + deslocamento_resultadoY, 25, DARKGRAY);
+    textoCentralizado(linha2, 375 + deslocamento_resultadoY, 25, DARKGRAY);
 
-    DrawText("R - Jogar novamente", 175, 430 + deslocamento_resultadoY, 20, DARKGRAY);
-    DrawText("ESC - Voltar ao menu", 175, 460 + deslocamento_resultadoY, 18, DARKGRAY);
+    textoCentralizado("R - Jogar novamente", 430 + deslocamento_resultadoY, 20, DARKGRAY);
+    textoCentralizado("ESC - Voltar ao menu", 460 + deslocamento_resultadoY, 18, DARKGRAY);
 }
 /*
 ███    ███    █████    ██   ███    ██ 
@@ -1319,7 +1322,7 @@ int main(void) {
 
             ClearBackground(RAYWHITE);
 
-            DrawText("QUARTETO", 185, 25, 35, DARKGRAY);
+            textoCentralizado("QUARTETO", 25, 35, DARKGRAY);
 
             desenharQuarteto(&quarteto, entrada, linhaTremendo, deslocamentoX);
 
@@ -1356,7 +1359,7 @@ int main(void) {
 
             } else if (mensagem[0] != '\0') {
 
-                DrawText(mensagem, 115, 665, 18, RED);
+                textoCentralizado(mensagem, 665, 18, RED);
             }
 
             atualizarConfete();
@@ -1472,7 +1475,7 @@ int main(void) {
 
             ClearBackground(RAYWHITE);
 
-            DrawText("DUETO", 225, 35, 40, DARKGRAY);
+            textoCentralizado("DUETO", 35, 40, DARKGRAY);
 
             desenharDueto(&dueto, entrada, linhaTremendo, deslocamentoX);
 
@@ -1509,12 +1512,11 @@ int main(void) {
 
             } else if (mensagem[0] != '\0') {
 
-                DrawText(mensagem, 90, 610, 18, RED);
+                textoCentralizado(mensagem, 610, 18, RED);
 
             } else {
 
-                DrawText("Digite 5 letras e pressione enter",
-                         95, 610, 20, DARKGRAY);
+                textoCentralizado("Digite 5 letras e pressione enter", 610, 20, DARKGRAY);
             }
 
             atualizarConfete();
@@ -1641,7 +1643,7 @@ int main(void) {
 
         ClearBackground(RAYWHITE);
 
-        DrawText("CERMO", 220, 40, 40, DARKGRAY);
+        textoCentralizado("CERMO", 40, 40, DARKGRAY);
 
         desenharJogo(&jogo, entrada, linhaTremendo, deslocamentoX); 
 
@@ -1674,12 +1676,11 @@ int main(void) {
 
         } else if (mensagem[0] != '\0') {
 
-            DrawText(mensagem, 90, 610, 18, RED);
+            textoCentralizado(mensagem, 610, 18, RED);
 
         } else {
 
-            DrawText("Digite 5 letras e pressione enter",
-                     95, 610, 20, DARKGRAY);
+            textoCentralizado("Digite 5 letras e pressione enter", 610, 20, DARKGRAY);
         }
 
         atualizarConfete();
