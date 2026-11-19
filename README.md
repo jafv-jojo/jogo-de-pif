@@ -1,10 +1,10 @@
-# Termo
+# Cermo
 
-Projeto final da disciplina de Programação Imperativa e Funcional, desenvolvido em linguagem C utilizando a biblioteca Raylib.
+Projeto final da disciplina de Programação Imperativa e Funcional, desenvolvido em linguagem C utilizando a biblioteca Raylib. O jogo é inspirado no Termo.
 
 ## Sobre o jogo
 
-Termo é um jogo de adivinhação de palavras. O objetivo é descobrir uma palavra secreta de cinco letras em até seis tentativas.
+Cermo é um jogo de adivinhação de palavras. O objetivo é descobrir uma palavra secreta de cinco letras em até seis tentativas.
 
 A cada tentativa, o jogo indica quais letras estão nas posições corretas e quais aparecem na palavra, mas estão em posições diferentes.
 
@@ -14,74 +14,72 @@ A cada tentativa, o jogo indica quais letras estão nas posições corretas e qu
 
 O jogador vence quando acerta a palavra secreta. Caso não consiga acertar em seis tentativas, o jogo termina e revela a resposta.
 
+Além do modo normal, o jogo possui os modos **Dueto** (duas palavras ao mesmo tempo, em até sete tentativas) e **Quarteto** (quatro palavras ao mesmo tempo, em até nove tentativas).
+
 ## Tecnologias utilizadas
 
 - **C:** desenvolvimento da lógica e das estruturas do jogo.
-- **Raylib:** criação da interface gráfica e leitura das teclas.
-- **libcurl:** realização de requisições HTTP para obtenção de palavras aleatórias.
-- **Random Word API:** fornecimento de palavras em português brasileiro.
+- **Raylib:** criação da interface gráfica, animações, sons e leitura do teclado e do mouse.
 - **GCC:** compilação do código.
 - **GNU Make:** automatização da compilação.
 - **pkg-config:** identificação das bibliotecas e suas dependências.
 
 ## Funcionalidades
 
-- Obtenção de uma palavra secreta aleatória por meio de uma API externa.
-- Seleção de palavras em português brasileiro com exatamente cinco letras.
+- Sorteio da palavra secreta a partir de uma lista local de palavras comuns em português brasileiro.
+- Validação das tentativas com a mesma lista de palavras.
 - Conversão de caracteres acentuados para letras sem acento.
-- Entrada de palavras pelo teclado.
+- Entrada de palavras pelo teclado físico ou pelo teclado na tela, clicando com o mouse.
+- Teclado na tela com as cores das letras já testadas.
 - Avaliação das letras de cada tentativa.
 - Exibição das tentativas em uma grade.
 - Indicação visual das letras por cores.
-- Reinício da partida após o término, com uma nova consulta à API.
+- Modos Normal, Dueto e Quarteto.
+- Animação das letras sendo reveladas uma por uma após cada tentativa.
+- Animação de tremor e som quando a palavra é inválida.
+- Caixa de resultado que aparece deslizando ao fim da partida.
+- Confetes caindo ao vencer, que colidem com o chão e se acumulam.
+- Botões do menu com cantos arredondados, sombra e efeito ao passar o mouse.
+- Título do menu com animação de flutuar.
+- Opção de tela cheia, pelo botão do menu ou pela tecla F11, mantendo a proporção do jogo.
+- Ícone da janela desenhado pelo próprio jogo.
+- Reinício da partida após o término.
 - Registro dos resultados em arquivo.
+- Tela de estatísticas com partidas jogadas, vitórias, sequências, distribuição de tentativas e últimas partidas.
 
-## Integração com a API
+## Palavras do jogo
 
-O projeto utiliza a [Random Word API](https://random-word-api.herokuapp.com/home) para obter palavras aleatórias em português brasileiro.
+O jogo utiliza o arquivo `palavras_5_letras.txt`, com uma palavra comum de cinco letras por linha, sem acentos. A palavra secreta é sorteada desse arquivo, e uma tentativa só é aceita se estiver nele.
 
-A requisição utiliza os seguintes parâmetros:
-
-- `number=1`: solicita uma palavra.
-- `length=5`: solicita palavras com cinco letras.
-- `lang=pt-br`: define o idioma como português brasileiro.
-
-Endpoint utilizado:
-
-```text
-https://random-word-api.herokuapp.com/word?number=1&length=5&lang=pt-br
-```
-
-A comunicação com a API é realizada por meio da biblioteca libcurl, responsável pelas requisições HTTP e pelo recebimento das respostas.
-
-As palavras recebidas passam por um processo de conversão para letras maiúsculas e remoção de acentos, mantendo a compatibilidade com a lógica de comparação do jogo.
-
-A consulta acontece no início de cada partida e sempre que uma nova partida é iniciada.
+As palavras são carregadas na memória ao iniciar o jogo, utilizando alocação dinâmica, e convertidas para letras maiúsculas para manter a compatibilidade com a lógica de comparação do jogo.
 
 ## Organização dos arquivos
 
 | Arquivo | Descrição |
 |---|---|
-| `main.c` | Inicialização da janela, leitura do teclado, controle da partida e desenho da interface. |
+| `main.c` | Inicialização da janela, leitura do teclado e do mouse, carregamento das palavras, controle das partidas, animações, tela cheia e desenho da interface. |
 | `jogo.h` | Definição da estrutura da partida e declaração das funções. |
 | `jogo.c` | Regras do jogo e verificação das tentativas. |
-| `palavras.h` | Declaração das funções de integração com a API. |
-| `palavras.c` | Comunicação com a API, recebimento da resposta, conversão e preparação da palavra secreta. |
+| `dueto.h` / `dueto.c` | Estrutura e regras do modo Dueto. |
+| `quarteto.h` / `quarteto.c` | Estrutura e regras do modo Quarteto. |
 | `ranking.h` | Definição das estruturas dos resultados. |
 | `ranking.c` | Gerenciamento da lista encadeada e gravação dos resultados. |
+| `palavras_5_letras.txt` | Lista de palavras do jogo. |
 | `ranking.txt` | Arquivo que armazena os resultados das partidas. |
+| `sons/sfx/` | Efeitos sonoros do jogo. |
 | `Makefile` | Comandos para compilar, executar e limpar o projeto. |
 
 ## Conceitos de programação utilizados
 
 O projeto utiliza os seguintes requisitos exigidos pela disciplina:
 
-- **Structs:** organização dos dados de uma partida, dos resultados e da resposta HTTP.
-- **Ponteiros:** acesso e alteração das estruturas, além do gerenciamento da lista encadeada e do buffer de resposta.
-- **Alocação dinâmica de memória:** utilização de `malloc()` para criação dos nós do ranking e `realloc()` para armazenamento da resposta recebida pela API.
+- **Structs:** organização dos dados de uma partida, dos resultados, das listas de palavras e dos confetes.
+- **Ponteiros:** acesso e alteração das estruturas, além do gerenciamento da lista encadeada e das listas de palavras.
+- **Alocação dinâmica de memória:** utilização de `malloc()` para criação dos nós do ranking e de cada palavra carregada, e `realloc()` para aumentar as listas de palavras durante a leitura dos arquivos.
 - **Listas encadeadas:** organização dos resultados das partidas.
 - **Matrizes:** armazenamento das tentativas e das cores correspondentes a cada letra.
-- **Leitura e escrita em arquivos:** persistência dos resultados das partidas no arquivo `ranking.txt`.
+- **Leitura e escrita em arquivos:** leitura da lista de palavras e persistência dos resultados das partidas no arquivo `ranking.txt`.
+- **Animação, movimento e colisão:** revelação das letras, tremor da linha, caixa de resultado deslizando, confetes que caem e colidem com o chão, e cliques do mouse nos botões e no teclado da tela usando colisão entre ponto e retângulo.
 
 ## Requisitos para executar
 
@@ -89,20 +87,12 @@ Para compilar e executar o jogo, é necessário ter:
 
 - GCC compatível com C11.
 - Biblioteca Raylib instalada.
-- Biblioteca libcurl instalada.
 - GNU Make.
 - pkg-config.
-- Conexão com a internet para consultar a API.
+
+Os arquivos `palavras_5_letras.txt`, `ranking.txt` e a pasta `sons` devem estar na mesma pasta de onde o jogo é executado.
 
 No Windows, recomenda-se utilizar o MSYS2 UCRT64 para disponibilizar as dependências de compilação.
-
-### Instalação do libcurl no MSYS2
-
-Caso ainda não tenha a biblioteca instalada, execute no terminal MSYS2 UCRT64:
-
-```bash
-pacman -S mingw-w64-ucrt-x86_64-curl
-```
 
 ## Como executar no Windows
 
@@ -118,10 +108,10 @@ $env:CHERE_INVOKING = "1"
 $env:PATH = "C:\msys64\ucrt64\bin;C:\msys64\usr\bin;$env:PATH"
 ```
 
-4. Confira se as bibliotecas estão disponíveis:
+4. Confira se a Raylib está disponível:
 
 ```powershell
-pkg-config --modversion raylib libcurl
+pkg-config --modversion raylib
 ```
 
 5. Compile o projeto:
@@ -148,18 +138,64 @@ Para remover o executável gerado:
 make clean
 ```
 
+## Como executar no Linux
+
+Os passos abaixo foram feitos para Ubuntu e Debian. Também funcionam no WSL (Ubuntu dentro do Windows); no Windows 11 a janela do jogo abre normalmente pelo WSLg.
+
+1. Instale as ferramentas de compilação e as dependências da Raylib:
+
+```bash
+sudo apt update
+sudo apt install build-essential git cmake pkg-config \
+    libasound2-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev \
+    libxinerama-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev
+```
+
+2. Baixe, compile e instale a Raylib:
+
+```bash
+git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib.git
+cd raylib
+cmake -B build -DBUILD_SHARED_LIBS=ON -DBUILD_EXAMPLES=OFF
+cmake --build build
+sudo cmake --install build
+sudo ldconfig
+cd ..
+```
+
+3. Confira se a Raylib está disponível:
+
+```bash
+pkg-config --modversion raylib
+```
+
+4. Entre na pasta do projeto e compile:
+
+```bash
+make
+```
+
+5. Execute o jogo:
+
+```bash
+./termo.exe
+```
+
+Também é possível compilar e executar diretamente com `make run`, e remover o executável com `make clean`.
+
 ## Controles
 
-- **Letras:** digitar a palavra.
-- **Backspace:** apagar a última letra.
-- **Enter:** enviar a tentativa.
+- **Letras:** digitar a palavra, pelo teclado ou clicando no teclado da tela.
+- **Backspace / APAGAR:** apagar a última letra.
+- **Enter / ENTER:** enviar a tentativa.
 - **R:** iniciar uma nova partida após o término.
+- **ESC:** voltar ao menu.
+- **F11:** alternar tela cheia.
+- **Mouse:** escolher o modo de jogo, abrir as estatísticas e usar os botões.
 
 ## Observações
 
-O projeto utiliza uma API externa para obter as palavras secretas, não dependendo de um arquivo local para manter uma lista de palavras.
-
-É necessária uma conexão com a internet para iniciar uma partida e obter novas palavras. Caso a API esteja indisponível, não será possível iniciar uma nova partida até que a comunicação seja restabelecida.
+O jogo não precisa de conexão com a internet. As palavras vêm do arquivo `palavras_5_letras.txt`, que pode ser editado para adicionar ou remover palavras.
 
 ## Autores
 
