@@ -203,12 +203,6 @@ Também é possível compilar e executar diretamente com `make run`, e remover o
 
 O jogo não precisa de conexão com a internet. As palavras vêm do arquivo `palavras_5_letras.txt`, que pode ser editado para adicionar ou remover palavras.
 
-## Uso de inteligência artificial
-
-A inteligência artificial foi utilizada como ferramenta de apoio durante o desenvolvimento do projeto, principalmente para auxiliar em cálculos relacionados à biblioteca Raylib, como posicionamento, centralização de elementos, dimensões e movimentação de objetos na interface gráfica.
-
-Também foi utilizada para esclarecer dúvidas sobre funções da biblioteca e auxiliar na resolução de problemas encontrados durante a implementação.
-
 ## Autores
 
 Projeto desenvolvido por Felipe Assis (fafs@cesar.school), Gabriel Cassemiro (gcrfl@cesar.school) e José Artur Viana (jafv@cesar.school) para a disciplina de Programação Imperativa e Funcional.
