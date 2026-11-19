@@ -577,10 +577,10 @@ int main(void) {
     InitWindow(LARGURA, ALTURA, "Cermo");
     
     // variaveis sfx
-    void InitAudioDevice();
+    InitAudioDevice();
     
-    Sound buzzer = LoadSound("sons/sfx/buzzer.mp3");
-    Sound resp_ok = LoadSound("sons/sfx/resp_ok.mp3");
+    Sound buzzer = LoadSound("sons/sfx/buzzer.wav");
+    Sound resp_ok = LoadSound("sons/sfx/resp_ok.wav");
     SetSoundVolume(buzzer, 0.5f);
     SetSoundVolume(resp_ok, 0.5f);    
 
@@ -1066,13 +1066,13 @@ int main(void) {
         EndDrawing();
     }
 
-    CloseWindow();
-
+    
     UnloadSound(buzzer); 
     UnloadSound(resp_ok);
-
+    
     CloseAudioDevice();
-
+    CloseWindow();
+    
     finalizarAPI();
 
     liberarRanking(ranking);
