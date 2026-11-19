@@ -1045,7 +1045,15 @@ int main(void) {
 
     int registroSalvo = 0;
 
-    InitWindow(LARGURA, ALTURA, "Cermo");
+    InitWindow(LARGURA, ALTURA, "CERMO");
+
+    Image icone = GenImageColor(64, 64, RAYWHITE);
+
+    int larguraC = MeasureText("C", 60);
+
+    ImageDrawText(&icone, "C", (64 - larguraC) / 2, 5, 60, BLUE);
+    SetWindowIcon(icone);
+    UnloadImage(icone);
 
     tela = LoadRenderTexture(LARGURA, ALTURA);
     SetTextureFilter(tela.texture, TEXTURE_FILTER_BILINEAR);
