@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/language-C-00599C?logo=c&logoColor=white" alt="C">
   <img src="https://img.shields.io/badge/raylib-5.5-black" alt="Raylib">
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey" alt="Windows e Linux">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green" alt="Windows e Linux">
 </p>
 
 ## Sobre o jogo
