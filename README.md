@@ -199,6 +199,11 @@ Também é possível compilar e executar diretamente com `make run`, e remover o
 - **F11:** alternar tela cheia.
 - **Mouse:** escolher o modo de jogo, abrir as estatísticas e usar os botões.
 
+## Gameplay do Jogo
+https://github.com/user-attachments/assets/aedb18c3-c896-4803-a259-d0440333429d
+
+
+
 ## Observações
 
 O jogo não precisa de conexão com a internet. As palavras vêm do arquivo `palavras_5_letras.txt`, que pode ser editado para adicionar ou remover palavras.
